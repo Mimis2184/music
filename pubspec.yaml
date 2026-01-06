@@ -55,6 +55,12 @@ flutter:
 
   assets:
     - assets/logo.svg 
+    - assets/Mood=Happy.png
+    - assets/Mood=HappyPressed.png
+    - assets/Mood=HappyUnpressed.png
+    - assets/Mood=HappySelected.png
+
+    
 
   
 

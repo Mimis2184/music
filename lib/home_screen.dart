@@ -22,7 +22,7 @@ class HomeScreen extends StatelessWidget {
               children: [
                 // LOGO IMAGE
                 Image.asset(
-                  'assets/logo.png',
+                  'assets/logo.svg',
                   width: 174,
                   height: 174,
                 ),

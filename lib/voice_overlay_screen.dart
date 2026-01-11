@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:music/results_screen.dart';
+import 'package:music/voice_overlay_edit_screen.dart';
+import 'main.dart';
 
 class VoiceOverlayScreen extends StatefulWidget {
-  const VoiceOverlayScreen({super.key});
+  final Map<String, String> themeAssets;
+  final AppThemeMode themeMode;
+  VoiceOverlayScreen({Key? key, required this.themeAssets, required this.themeMode}) : super(key: key);
 
   @override
   State<VoiceOverlayScreen> createState() => _VoiceOverlayScreenState();
@@ -44,7 +48,11 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
   void _handleEdit() async {
     final editedText = await Navigator.of(context).push<String>(
       MaterialPageRoute(
-        builder: (context) => VoiceOverlayEditScreen(initialText: transcribedText),
+        builder: (context) => VoiceOverlayEditScreen(
+          initialText: transcribedText,
+          themeAssets: widget.themeAssets,
+          themeMode: widget.themeMode,
+        ),
       ),
     );
     if (editedText != null) {
@@ -58,7 +66,11 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
     if (detectedMood != null && allowedMoods.contains(detectedMood)) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => ResultsScreen(mood: detectedMood!),
+          builder: (context) => ResultsScreen(
+            mood: detectedMood!,
+            themeAssets: widget.themeAssets,
+            themeMode: widget.themeMode,
+          ),
         ),
       );
     } else {
@@ -69,12 +81,14 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
         ),
       );
     }
+    // Updated to ensure theme parameters are passed correctly
+    // This comment is for clarity and can be removed if not needed
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFBF7),
+      backgroundColor: widget.themeMode == AppThemeMode.light ? const Color(0xFFFFFBF7) : const Color(0xFF312F2D),
       body: SafeArea(
         child: SingleChildScrollView(
           child: SizedBox(
@@ -349,40 +363,3 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
   }
 }
 
-class VoiceOverlayEditScreen extends StatelessWidget {
-  final String initialText;
-
-  const VoiceOverlayEditScreen({super.key, required this.initialText});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Transcribed Text'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: TextEditingController(text: initialText),
-              maxLines: null,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Edit your transcribed text here...',
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // TODO: Handle save action
-                Navigator.of(context).pop();
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

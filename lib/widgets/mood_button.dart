@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:music/main.dart';
+
 class MoodButton extends StatelessWidget {
   final String label;
   final String defaultEmojiUrl;
@@ -8,6 +10,8 @@ class MoodButton extends StatelessWidget {
   final VoidCallback onTap;
   final double width;
   final double height;
+  final Map<String, String>? themeAssets;
+  final AppThemeMode? themeMode;
 
   const MoodButton({
     super.key,
@@ -18,10 +22,28 @@ class MoodButton extends StatelessWidget {
     required this.onTap,
     this.width = 94,
     this.height = 102,
+    this.themeAssets,
+    this.themeMode,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Use theme assets for background if provided
+    Color? bgColor;
+    if (themeMode != null && themeAssets != null) {
+      if (themeMode == AppThemeMode.light) {
+        bgColor = isSelected ? const Color(0xFFCBB1E5) : const Color(0xFFDBFBFF);
+      } else {
+        bgColor = isSelected ? const Color(0xFFB1BE86) : const Color(0xFF5B7174);
+      }
+    } else {
+      bgColor = isSelected ? const Color(0xFFCBB1E5) : const Color(0xFFDBFBFF);
+    }
+
+    Color textColor = (themeMode == AppThemeMode.dark)
+        ? const Color(0xFFDBFBFF)
+        : const Color(0xFF383737);
+
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
@@ -32,9 +54,7 @@ class MoodButton extends StatelessWidget {
             // Background container
             Container(
               decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFFCBB1E5) // Purple when selected
-                    : const Color(0xFFDBFBFF), // Light blue when not selected
+                color: bgColor,
                 borderRadius: BorderRadius.circular(28),
               ),
             ),
@@ -77,11 +97,11 @@ class MoodButton extends StatelessWidget {
               child: Text(
                 label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w500,
                   fontSize: 16,
-                  color: Color(0xFF383737),
+                  color: textColor,
                 ),
               ),
             ),

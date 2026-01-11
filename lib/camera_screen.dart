@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:music/results_screen.dart';
+import 'main.dart';
 
 class CameraScreen extends StatefulWidget {
-  const CameraScreen({super.key});
+  final Map<String, String> themeAssets;
+  final AppThemeMode themeMode;
+  CameraScreen({Key? key, required this.themeAssets, required this.themeMode}) : super(key: key);
 
   @override
   State<CameraScreen> createState() => _CameraScreenState();
@@ -39,7 +42,11 @@ class _CameraScreenState extends State<CameraScreen> {
     if (detectedMood != null && allowedMoods.contains(detectedMood)) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => ResultsScreen(mood: detectedMood!),
+          builder: (context) => ResultsScreen(
+            mood: detectedMood!,
+            themeAssets: widget.themeAssets,
+            themeMode: widget.themeMode,
+          ),
         ),
       );
     } else {
@@ -55,7 +62,7 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFBF7),
+      backgroundColor: widget.themeMode == AppThemeMode.light ? const Color(0xFFFFFBF7) : const Color(0xFF312F2D),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

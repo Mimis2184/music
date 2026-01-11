@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:music/main.dart';
+
 class ActionButton extends StatefulWidget {
   final String label;
   final Widget iconDefault;
@@ -11,6 +13,8 @@ class ActionButton extends StatefulWidget {
   final VoidCallback? onTapCancel;
   final double pressedScale;
   final Color? pressedColor;
+  final Map<String, String>? themeAssets;
+  final AppThemeMode? themeMode;
 
   const ActionButton({
     super.key,
@@ -24,6 +28,8 @@ class ActionButton extends StatefulWidget {
     this.onTapCancel,
     this.pressedScale = 1.08,
     this.pressedColor,
+    this.themeAssets,
+    this.themeMode,
   });
 
   @override
@@ -49,6 +55,13 @@ class _ActionButtonState extends State<ActionButton> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final bool effectivePressed = widget.isPressed || _isPressedLocal;
     final double scale = effectivePressed ? widget.pressedScale : 1.0;
+
+    Color borderColor = (widget.themeMode == AppThemeMode.dark)
+        ? const Color(0xFF727475)
+        : const Color(0xFFD3CECE);
+    Color textColor = (widget.themeMode == AppThemeMode.dark)
+        ? const Color(0xFFDBFBFF)
+        : const Color(0xFF383737);
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -77,7 +90,7 @@ class _ActionButtonState extends State<ActionButton> with SingleTickerProviderSt
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFFD3CECE),
+                  color: borderColor,
                   width: 1.5,
                 ),
                 color: effectivePressed
@@ -92,10 +105,10 @@ class _ActionButtonState extends State<ActionButton> with SingleTickerProviderSt
           const SizedBox(height: 8),
           Text(
             widget.label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF383737),
+              color: textColor,
               fontFamily: 'Inter',
             ),
           ),

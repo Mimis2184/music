@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
+import 'main.dart';
 
-class ResultsScreen extends StatelessWidget {
+
+class ResultsScreen extends StatefulWidget {
   final String mood;
-  const ResultsScreen({super.key, required this.mood});
+  final Map<String, String> themeAssets;
+  final AppThemeMode themeMode;
+  ResultsScreen({Key? key, required this.mood, required this.themeAssets, required this.themeMode}) : super(key: key);
+
+  @override
+  State<ResultsScreen> createState() => _ResultsScreenState();
+}
+
+class _ResultsScreenState extends State<ResultsScreen> {
 
   void _handleOpenInSpotify() {
     // TODO: Open Spotify app or link
@@ -24,7 +34,7 @@ class ResultsScreen extends StatelessWidget {
     bool isSharePressed = false;
     bool isOpenSpotifyPressed = false;
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFBF7),
+      backgroundColor: widget.themeMode == AppThemeMode.light ? const Color(0xFFFFFBF7) : const Color(0xFF312F2D),
       body: SafeArea(
         child: StatefulBuilder(
           builder: (context, setState) => SingleChildScrollView(
@@ -97,7 +107,7 @@ class ResultsScreen extends StatelessWidget {
                           child: Align(
                             alignment: Alignment.center,
                             child: Text(
-                              mood + ' Vibes',
+                              widget.mood + ' Vibes',
                               style: const TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.w800,

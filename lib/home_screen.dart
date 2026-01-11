@@ -5,8 +5,13 @@ import 'package:music/results_screen.dart';
 import 'package:music/widgets/mood_button.dart';
 import 'package:music/widgets/action_button.dart';
 
+
+import 'main.dart';
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Map<String, String> themeAssets;
+  final AppThemeMode themeMode;
+  const HomeScreen({super.key, required this.themeAssets, required this.themeMode});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -46,7 +51,11 @@ class _HomeScreenState extends State<HomeScreen> {
     if (selectedMood != null) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => ResultsScreen(mood: selectedMood!),
+          builder: (context) => ResultsScreen(
+            mood: selectedMood!,
+            themeAssets: widget.themeAssets,
+            themeMode: widget.themeMode,
+          ),
         ),
       );
     } else {
@@ -66,7 +75,10 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const CameraScreen(),
+        builder: (context) => CameraScreen(
+          themeAssets: widget.themeAssets,
+          themeMode: widget.themeMode,
+        ),
       ),
     ).then((_) {
       setState(() {
@@ -76,13 +88,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleMicrophone() {
-    // Clear the pressed visual immediately on release, then navigate.
     setState(() {
       isMicPressed = false;
     });
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const VoiceOverlayScreen(),
+        builder: (context) => VoiceOverlayScreen(
+          themeAssets: widget.themeAssets,
+          themeMode: widget.themeMode,
+        ),
       ),
     ).then((_) {
       setState(() {
@@ -94,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFBF7),
+      backgroundColor: widget.themeMode == AppThemeMode.light ? const Color(0xFFFFFBF7) : const Color(0xFF312F2D),
       body: SafeArea(
         child: SingleChildScrollView(
           child: SizedBox(
@@ -118,6 +132,22 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
+                  ),
+                ),
+                // Example: show theme color asset images at the top for debug/demo
+                Positioned(
+                  left: 10,
+                  top: 200,
+                  child: Row(
+                    children: widget.themeAssets.entries.where((e) => e.value.isNotEmpty).map((entry) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Column(
+                        children: [
+                          Image.network(entry.value, width: 32, height: 32),
+                          Text(entry.key, style: const TextStyle(fontSize: 8)),
+                        ],
+                      ),
+                    )).toList(),
                   ),
                 ),
 
@@ -168,6 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               pressedEmojiUrl: happyEmojiPressed,
                               isSelected: selectedMood == 'Happy',
                               onTap: () => _handleMoodSelection('Happy'),
+                              themeAssets: widget.themeAssets,
+                              themeMode: widget.themeMode,
                             ),
                             MoodButton(
                               label: 'Sad',
@@ -175,6 +207,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               pressedEmojiUrl: sadEmojiPressed,
                               isSelected: selectedMood == 'Sad',
                               onTap: () => _handleMoodSelection('Sad'),
+                              themeAssets: widget.themeAssets,
+                              themeMode: widget.themeMode,
                             ),
                             MoodButton(
                               label: 'Calm',
@@ -182,6 +216,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               pressedEmojiUrl: calmEmojiPressed,
                               isSelected: selectedMood == 'Calm',
                               onTap: () => _handleMoodSelection('Calm'),
+                              themeAssets: widget.themeAssets,
+                              themeMode: widget.themeMode,
                             ),
                           ],
                         ),
@@ -200,6 +236,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               pressedEmojiUrl: anxiousEmojiPressed,
                               isSelected: selectedMood == 'Anxious',
                               onTap: () => _handleMoodSelection('Anxious'),
+                              themeAssets: widget.themeAssets,
+                              themeMode: widget.themeMode,
                             ),
                             MoodButton(
                               label: 'Romantic',
@@ -207,6 +245,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               pressedEmojiUrl: romanticEmojiPressed,
                               isSelected: selectedMood == 'Romantic',
                               onTap: () => _handleMoodSelection('Romantic'),
+                              themeAssets: widget.themeAssets,
+                              themeMode: widget.themeMode,
                             ),
                             MoodButton(
                               label: 'Angry',
@@ -214,6 +254,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               pressedEmojiUrl: angryEmojiPressed,
                               isSelected: selectedMood == 'Angry',
                               onTap: () => _handleMoodSelection('Angry'),
+                              themeAssets: widget.themeAssets,
+                              themeMode: widget.themeMode,
                             ),
                           ],
                         ),
@@ -229,40 +271,64 @@ class _HomeScreenState extends State<HomeScreen> {
                             ActionButton(
                               label: 'Speak',
                               iconDefault: Image.network(
-                                'https://www.figma.com/api/mcp/asset/6b99acdd-8e3b-4063-8145-4f252bf24fb0', // Figma node 23:35 mic default
-                                width: 24,
-                                height: 24,
+                                'https://www.figma.com/api/mcp/asset/0a19ad23-e84b-4d55-b9ff-283b7e6c7b11', // mic button bg
+                                width: 56,
+                                height: 56,
                               ),
                               iconPressed: Image.network(
-                                'https://www.figma.com/api/mcp/asset/59d5b492-9efe-4b34-be46-21bde88e2e38', // Figma node 23:35 mic pressed
-                                width: 28,
-                                height: 28,
+                                'https://www.figma.com/api/mcp/asset/4e3bdf78-5f51-4ff9-91c0-d90ee71dafd9', // mic pressed (use text color asset as placeholder)
+                                width: 56,
+                                height: 56,
                               ),
                               isPressed: isMicPressed,
-                              pressedColor: const Color(0xFFFFD4D0), // Figma pressed color
+                              pressedColor: Colors.transparent,
                               onTapDown: () => setState(() => isMicPressed = true),
                               onTapUp: _handleMicrophone,
                               onTapCancel: () => setState(() => isMicPressed = false),
                               pressedScale: 1.12,
+                              themeAssets: widget.themeAssets,
+                              themeMode: widget.themeMode,
                             ),
                             ActionButton(
                               label: 'Camera',
-                              iconDefault: Image.network(
-                                'https://www.figma.com/api/mcp/asset/6b99acdd-8e3b-4063-8145-4f252bf24fb0', // Figma node 23:35 camera default
-                                width: 24,
-                                height: 24,
+                              iconDefault: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Image.network(
+                                    'https://www.figma.com/api/mcp/asset/0a19ad23-e84b-4d55-b9ff-283b7e6c7b11', // camera button bg
+                                    width: 56,
+                                    height: 56,
+                                  ),
+                                  Image.network(
+                                    'https://www.figma.com/api/mcp/asset/6b87d767-7069-40f9-bbad-72c10e66ca7d', // camera icon
+                                    width: 32,
+                                    height: 32,
+                                  ),
+                                ],
                               ),
-                              iconPressed: Image.network(
-                                'https://www.figma.com/api/mcp/asset/747d3524-0cf8-4068-b649-23654a3e0883', // Figma node 23:35 camera pressed
-                                width: 28,
-                                height: 28,
+                              iconPressed: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Image.network(
+                                    'https://www.figma.com/api/mcp/asset/0a19ad23-e84b-4d55-b9ff-283b7e6c7b11',
+                                    width: 56,
+                                    height: 56,
+                                  ),
+                                  Image.network(
+                                    'https://www.figma.com/api/mcp/asset/6b87d767-7069-40f9-bbad-72c10e66ca7d',
+                                    width: 32,
+                                    height: 32,
+                                  ),
+                                ],
                               ),
                               isPressed: isCameraPressed,
-                              pressedColor: const Color(0xFFFFD4D0), // Match mic pressed color
+                              pressedColor: Colors.transparent,
                               onTapDown: () => setState(() => isCameraPressed = true),
                               onTapUp: _handleCamera,
                               onTapCancel: () => setState(() => isCameraPressed = false),
                               pressedScale: 1.12,
+                              themeAssets: widget.themeAssets,
+                              themeMode: widget.themeMode,
                             ),
                           ],
                         ),

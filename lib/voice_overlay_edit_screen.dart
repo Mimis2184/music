@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'main.dart';
 
 class VoiceOverlayEditScreen extends StatefulWidget {
   final String initialText;
+  final Map<String, String> themeAssets;
+  final AppThemeMode themeMode;
 
-  const VoiceOverlayEditScreen({
-    super.key,
-    this.initialText = '',
-  });
+  VoiceOverlayEditScreen({Key? key, this.initialText = '', required this.themeAssets, required this.themeMode}) : super(key: key);
 
   @override
   State<VoiceOverlayEditScreen> createState() => _VoiceOverlayEditScreenState();
@@ -42,6 +42,7 @@ class _VoiceOverlayEditScreenState extends State<VoiceOverlayEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: widget.themeMode == AppThemeMode.light ? const Color(0xFFFFFBF7) : const Color(0xFF312F2D),
       body: SafeArea(
         child: Stack(
           children: [

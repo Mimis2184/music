@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:music/results_screen.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -8,8 +9,12 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
+  static const allowedMoods = [
+    'Happy', 'Sad', 'Calm', 'Anxious', 'Romantic', 'Angry'
+  ];
   String? detectedMood;
   bool isAnalyzing = true;
+  bool isSeeSuggestionsPressed = false;
 
   @override
   void initState() {
@@ -17,8 +22,9 @@ class _CameraScreenState extends State<CameraScreen> {
     // Simulate analyzing
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
+        final idx = DateTime.now().second % allowedMoods.length;
         setState(() {
-          detectedMood = 'Happy';
+          detectedMood = allowedMoods[idx];
           isAnalyzing = false;
         });
       }
@@ -30,8 +36,20 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   void _handleSeeSuggestions() {
-    // TODO: Navigate to suggestions/results screen
-    print('See Suggestions tapped');
+    if (detectedMood != null && allowedMoods.contains(detectedMood)) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ResultsScreen(mood: detectedMood!),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please wait for mood detection'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
@@ -137,37 +155,41 @@ class _CameraScreenState extends State<CameraScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // Detected mood display
-                if (detectedMood != null && !isAnalyzing)
+                // Detected mood display (Figma exact style)
+                if (detectedMood != null && !isAnalyzing && allowedMoods.contains(detectedMood))
                   Container(
                     width: 300,
                     height: 44,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE8F2FB),
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(
+                    child: Stack(
                       children: [
-                        const Text(
-                          'Detected mood: ',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xFF383737),
-                            fontFamily: 'Arial Rounded MT Bold',
+                        Positioned(
+                          left: 27,
+                          top: 10,
+                          child: Text(
+                            'Detected mood:',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xFF383737),
+                              fontFamily: 'Arial Rounded MT Bold',
+                            ),
                           ),
                         ),
-                        Text(
-                          detectedMood!,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xFF615690),
-                            fontFamily: 'Arial Rounded MT Bold',
+                        Positioned(
+                          left: 190,
+                          top: 10,
+                          child: Text(
+                            detectedMood!,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xFF615690),
+                              fontFamily: 'Arial Rounded MT Bold',
+                            ),
                           ),
                         ),
                       ],
@@ -177,22 +199,33 @@ class _CameraScreenState extends State<CameraScreen> {
 
                 // See Suggestions button
                 GestureDetector(
-                  onTap: _handleSeeSuggestions,
-                  child: Container(
-                    width: 289,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF5B80A4),
-                      borderRadius: BorderRadius.circular(29),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'See Suggestions?',
-                      style: TextStyle(
-                        color: Color(0xFFFFFBF7),
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Inter',
+                  onTapDown: (_) => setState(() => isSeeSuggestionsPressed = true),
+                  onTapUp: (_) {
+                    setState(() => isSeeSuggestionsPressed = false);
+                    _handleSeeSuggestions();
+                  },
+                  onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
+                  child: AnimatedScale(
+                    scale: isSeeSuggestionsPressed ? 1.03 : 1.0,
+                    duration: const Duration(milliseconds: 120),
+                    curve: Curves.easeOut,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 120),
+                      width: 289,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        color: isSeeSuggestionsPressed ? const Color(0xFF3F5F78) : const Color(0xFF5B80A4),
+                        borderRadius: BorderRadius.circular(29),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'See Suggestions!',
+                        style: TextStyle(
+                          color: Color(0xFFFFFBF7),
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Inter',
+                        ),
                       ),
                     ),
                   ),

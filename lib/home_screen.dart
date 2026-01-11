@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:music/camera_screen.dart';
 import 'package:music/voice_overlay_screen.dart';
 import 'package:music/results_screen.dart';
+import 'package:music/widgets/mood_button.dart';
+import 'package:music/widgets/action_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,14 +14,26 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? selectedMood;
+  bool isCameraPressed = false;
+  bool isMicPressed = false;
+  bool isSeeSuggestionsPressed = false;
 
-  // Emoji image URLs from Figma (node 113:694)
-  final String happyEmoji = "https://www.figma.com/api/mcp/asset/49bce041-d4e5-4d99-913a-489693b69a98";
-  final String sadEmoji = "https://www.figma.com/api/mcp/asset/9a5fbb22-65e1-4662-909d-69fc52da8608";
-  final String calmEmoji = "https://www.figma.com/api/mcp/asset/26c79ce0-7b4b-42e7-9ff3-62a49c4e1499";
-  final String anxiousEmoji = "https://www.figma.com/api/mcp/asset/b9a5d021-5c74-4bc4-b30f-0b70f46770ff";
-  final String romanticEmoji = "https://www.figma.com/api/mcp/asset/8aefac17-8445-4f28-bc67-b524152b6968";
-  final String angryEmoji = "https://www.figma.com/api/mcp/asset/175790ec-2ebc-4df1-b694-6d6723acdd7e";
+  // Emoji image URLs from Figma (node 113:694) - Default states
+  final String happyEmoji = "https://www.figma.com/api/mcp/asset/5bdf8c50-be7e-4f1c-a838-b02f2dd6cb1f";
+  final String sadEmoji = "https://www.figma.com/api/mcp/asset/218ebb61-9fad-4f25-b0c3-0c0e301e2196";
+  final String calmEmoji = "https://www.figma.com/api/mcp/asset/05456a95-690a-4eea-b1f6-e6ac76107c1e";
+  final String anxiousEmoji = "https://www.figma.com/api/mcp/asset/a2623142-b131-4a87-abfc-2f0776a41ba0";
+  final String romanticEmoji = "https://www.figma.com/api/mcp/asset/f515bee9-44d2-447f-98e9-3f241d68a6cd";
+  final String angryEmoji = "https://www.figma.com/api/mcp/asset/45fb0bbe-2949-4ed7-b06b-57658881e3d1";
+  
+  // Emoji image URLs from Figma assets page (node 23:35) - Pressed states
+  final String happyEmojiPressed = "https://www.figma.com/api/mcp/asset/8528c9cf-e174-44af-9af2-5d995a7d3881";
+  final String sadEmojiPressed = "https://www.figma.com/api/mcp/asset/c2faef8d-3ffb-4499-a03f-eba24061723b";
+  final String calmEmojiPressed = "https://www.figma.com/api/mcp/asset/5cc43946-f52c-47e3-aba4-efdb757c7daf";
+  final String anxiousEmojiPressed = "https://www.figma.com/api/mcp/asset/a1adf183-971a-4be6-a7b1-dfa3f2ac4ba3";
+  final String romanticEmojiPressed = "https://www.figma.com/api/mcp/asset/38f8d12b-1219-4a11-8211-011a1bc87adb";
+  final String angryEmojiPressed = "https://www.figma.com/api/mcp/asset/e64da4d8-a142-41c4-b875-79c993711461";
+  
   final String logoUrl = "https://www.figma.com/api/mcp/asset/74fffb3f-7f87-4bdc-a8d1-82eb6a82c753";
 
   void _handleMoodSelection(String mood) {
@@ -32,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (selectedMood != null) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => const ResultsScreen(),
+          builder: (context) => ResultsScreen(mood: selectedMood!),
         ),
       );
     } else {
@@ -46,19 +60,35 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleCamera() {
+    // Clear the pressed visual immediately on release, then navigate.
+    setState(() {
+      isCameraPressed = false;
+    });
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const CameraScreen(),
       ),
-    );
+    ).then((_) {
+      setState(() {
+        isCameraPressed = false;
+      });
+    });
   }
 
   void _handleMicrophone() {
+    // Clear the pressed visual immediately on release, then navigate.
+    setState(() {
+      isMicPressed = false;
+    });
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const VoiceOverlayScreen(),
       ),
-    );
+    ).then((_) {
+      setState(() {
+        isMicPressed = false;
+      });
+    });
   }
 
   @override
@@ -132,23 +162,26 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _MoodButtonWithImage(
-                              mood: 'Happy',
-                              imageUrl: happyEmoji,
+                            MoodButton(
+                              label: 'Happy',
+                              defaultEmojiUrl: happyEmoji,
+                              pressedEmojiUrl: happyEmojiPressed,
                               isSelected: selectedMood == 'Happy',
-                              onPressed: () => _handleMoodSelection('Happy'),
+                              onTap: () => _handleMoodSelection('Happy'),
                             ),
-                            _MoodButtonWithImage(
-                              mood: 'Sad',
-                              imageUrl: sadEmoji,
+                            MoodButton(
+                              label: 'Sad',
+                              defaultEmojiUrl: sadEmoji,
+                              pressedEmojiUrl: sadEmojiPressed,
                               isSelected: selectedMood == 'Sad',
-                              onPressed: () => _handleMoodSelection('Sad'),
+                              onTap: () => _handleMoodSelection('Sad'),
                             ),
-                            _MoodButtonWithImage(
-                              mood: 'Calm',
-                              imageUrl: calmEmoji,
+                            MoodButton(
+                              label: 'Calm',
+                              defaultEmojiUrl: calmEmoji,
+                              pressedEmojiUrl: calmEmojiPressed,
                               isSelected: selectedMood == 'Calm',
-                              onPressed: () => _handleMoodSelection('Calm'),
+                              onTap: () => _handleMoodSelection('Calm'),
                             ),
                           ],
                         ),
@@ -161,23 +194,26 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _MoodButtonWithImage(
-                              mood: 'Anxious',
-                              imageUrl: anxiousEmoji,
+                            MoodButton(
+                              label: 'Anxious',
+                              defaultEmojiUrl: anxiousEmoji,
+                              pressedEmojiUrl: anxiousEmojiPressed,
                               isSelected: selectedMood == 'Anxious',
-                              onPressed: () => _handleMoodSelection('Anxious'),
+                              onTap: () => _handleMoodSelection('Anxious'),
                             ),
-                            _MoodButtonWithImage(
-                              mood: 'Romantic',
-                              imageUrl: romanticEmoji,
+                            MoodButton(
+                              label: 'Romantic',
+                              defaultEmojiUrl: romanticEmoji,
+                              pressedEmojiUrl: romanticEmojiPressed,
                               isSelected: selectedMood == 'Romantic',
-                              onPressed: () => _handleMoodSelection('Romantic'),
+                              onTap: () => _handleMoodSelection('Romantic'),
                             ),
-                            _MoodButtonWithImage(
-                              mood: 'Angry',
-                              imageUrl: angryEmoji,
+                            MoodButton(
+                              label: 'Angry',
+                              defaultEmojiUrl: angryEmoji,
+                              pressedEmojiUrl: angryEmojiPressed,
                               isSelected: selectedMood == 'Angry',
-                              onPressed: () => _handleMoodSelection('Angry'),
+                              onTap: () => _handleMoodSelection('Angry'),
                             ),
                           ],
                         ),
@@ -190,41 +226,80 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _ActionButton(
-                              icon: Icons.mic,
+                            ActionButton(
                               label: 'Speak',
-                              onPressed: _handleMicrophone,
+                              iconDefault: Image.network(
+                                'https://www.figma.com/api/mcp/asset/6b99acdd-8e3b-4063-8145-4f252bf24fb0', // Figma node 23:35 mic default
+                                width: 24,
+                                height: 24,
+                              ),
+                              iconPressed: Image.network(
+                                'https://www.figma.com/api/mcp/asset/59d5b492-9efe-4b34-be46-21bde88e2e38', // Figma node 23:35 mic pressed
+                                width: 28,
+                                height: 28,
+                              ),
+                              isPressed: isMicPressed,
+                              pressedColor: const Color(0xFFFFD4D0), // Figma pressed color
+                              onTapDown: () => setState(() => isMicPressed = true),
+                              onTapUp: _handleMicrophone,
+                              onTapCancel: () => setState(() => isMicPressed = false),
+                              pressedScale: 1.12,
                             ),
-                            _ActionButton(
-                              icon: Icons.camera_alt,
+                            ActionButton(
                               label: 'Camera',
-                              onPressed: _handleCamera,
+                              iconDefault: Image.network(
+                                'https://www.figma.com/api/mcp/asset/6b99acdd-8e3b-4063-8145-4f252bf24fb0', // Figma node 23:35 camera default
+                                width: 24,
+                                height: 24,
+                              ),
+                              iconPressed: Image.network(
+                                'https://www.figma.com/api/mcp/asset/747d3524-0cf8-4068-b649-23654a3e0883', // Figma node 23:35 camera pressed
+                                width: 28,
+                                height: 28,
+                              ),
+                              isPressed: isCameraPressed,
+                              pressedColor: const Color(0xFFFFD4D0), // Match mic pressed color
+                              onTapDown: () => setState(() => isCameraPressed = true),
+                              onTapUp: _handleCamera,
+                              onTapCancel: () => setState(() => isCameraPressed = false),
+                              pressedScale: 1.12,
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 30),
 
-                      // See Suggestions button
+                      // See Suggestions button (animated scale + color on press)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 61),
                         child: GestureDetector(
-                          onTap: _handleSeeSuggestions,
-                          child: Container(
-                            width: 289,
-                            height: 58,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF5B80A4),
-                              borderRadius: BorderRadius.circular(29),
-                            ),
-                            alignment: Alignment.center,
-                            child: const Text(
-                              'See Suggestions?',
-                              style: TextStyle(
-                                color: Color(0xFFFFFBF7),
-                                fontSize: 22,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'Inter',
+                          onTapDown: (_) => setState(() => isSeeSuggestionsPressed = true),
+                          onTapUp: (_) {
+                            setState(() => isSeeSuggestionsPressed = false);
+                            _handleSeeSuggestions();
+                          },
+                          onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
+                          child: AnimatedScale(
+                            scale: isSeeSuggestionsPressed ? 1.03 : 1.0,
+                            duration: const Duration(milliseconds: 120),
+                            curve: Curves.easeOut,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 120),
+                              width: 289,
+                              height: 58,
+                              decoration: BoxDecoration(
+                                color: isSeeSuggestionsPressed ? const Color(0xFF3F5F78) : const Color(0xFF5B80A4),
+                                borderRadius: BorderRadius.circular(29),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'See Suggestions!',
+                                style: TextStyle(
+                                  color: Color(0xFFFFFBF7),
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Inter',
+                                ),
                               ),
                             ),
                           ),
@@ -238,210 +313,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _MoodButtonWithImage extends StatelessWidget {
-  final String mood;
-  final String imageUrl;
-  final bool isSelected;
-  final VoidCallback onPressed;
-
-  const _MoodButtonWithImage({
-    required this.mood,
-    required this.imageUrl,
-    required this.isSelected,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 94,
-        height: 102,
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE8D4FF) : const Color(0xFFDBFBFF),
-          borderRadius: BorderRadius.circular(28),
-          border: isSelected
-              ? Border.all(color: const Color(0xFF5B80A4), width: 2)
-              : null,
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF5B80A4).withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  )
-                ]
-              : null,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Emoji image from Figma
-            SizedBox(
-              width: 56,
-              height: 56,
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  // Fallback to emoji text if image fails
-                  return Center(
-                    child: Text(
-                      _getEmojiText(mood),
-                      style: const TextStyle(fontSize: 40),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              mood,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF383737),
-                fontFamily: 'Inter',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getEmojiText(String mood) {
-    switch (mood) {
-      case 'Happy':
-        return '??';
-      case 'Sad':
-        return '??';
-      case 'Calm':
-        return '??';
-      case 'Anxious':
-        return '??';
-      case 'Romantic':
-        return '??';
-      case 'Angry':
-        return '??';
-      default:
-        return '??';
-    }
-  }
-}
-
-class _MoodButton extends StatelessWidget {
-  final String mood;
-  final String emoji;
-  final bool isSelected;
-  final VoidCallback onPressed;
-
-  const _MoodButton({
-    required this.mood,
-    required this.emoji,
-    required this.isSelected,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 94,
-        height: 102,
-        decoration: BoxDecoration(
-          color: const Color(0xFFDBFBFF),
-          borderRadius: BorderRadius.circular(28),
-          border: isSelected
-              ? Border.all(color: const Color(0xFF5B80A4), width: 2)
-              : null,
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF5B80A4).withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  )
-                ]
-              : null,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              emoji,
-              style: const TextStyle(fontSize: 40),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              mood,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF383737),
-                fontFamily: 'Inter',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onPressed;
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color(0xFFD3CECE),
-                width: 1.5,
-              ),
-            ),
-            child: Icon(
-              icon,
-              color: const Color(0xFFD3CECE),
-              size: 24,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF383737),
-              fontFamily: 'Inter',
-            ),
-          ),
-        ],
       ),
     );
   }

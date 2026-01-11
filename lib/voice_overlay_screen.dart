@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:music/results_screen.dart';
 
 class VoiceOverlayScreen extends StatefulWidget {
   const VoiceOverlayScreen({super.key});
@@ -11,10 +12,18 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
   bool isRecording = false;
   String? detectedMood;
   String transcribedText = '';
+  bool isSeeSuggestionsPressed = false;
+  bool isMicPressed = false;
+  bool isEditPressed = false;
+  bool isBackPressed = false;
 
   void _handleBack() {
     Navigator.of(context).pop();
   }
+
+  static const allowedMoods = [
+    'Happy', 'Sad', 'Calm', 'Anxious', 'Romantic', 'Angry'
+  ];
 
   void _toggleRecording() {
     setState(() {
@@ -22,7 +31,9 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
       if (isRecording) {
         // TODO: Start voice recording
         // TODO: Detect mood from voice
-        detectedMood = 'Happy'; // Placeholder
+        // Simulate detected mood (for demo, cycle through allowed moods)
+        final idx = DateTime.now().second % allowedMoods.length;
+        detectedMood = allowedMoods[idx];
         transcribedText = 'This is a placeholder for transcribed text...';
       } else {
         // TODO: Stop voice recording
@@ -30,14 +41,34 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
     });
   }
 
-  void _handleEdit() {
-    // TODO: Edit transcribed text
-    print('Edit tapped');
+  void _handleEdit() async {
+    final editedText = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (context) => VoiceOverlayEditScreen(initialText: transcribedText),
+      ),
+    );
+    if (editedText != null) {
+      setState(() {
+        transcribedText = editedText;
+      });
+    }
   }
 
   void _handleSeeSuggestions() {
-    // TODO: Navigate to suggestions based on mood
-    print('See Suggestions tapped');
+    if (detectedMood != null && allowedMoods.contains(detectedMood)) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ResultsScreen(mood: detectedMood!),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please record and detect your mood first'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
@@ -61,22 +92,33 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             GestureDetector(
-                              onTap: _handleBack,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.15),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.arrow_back,
-                                  color: Color(0xFF383737),
-                                  size: 24,
+                              onTapDown: (_) => setState(() => isBackPressed = true),
+                              onTapUp: (_) {
+                                setState(() => isBackPressed = false);
+                                _handleBack();
+                              },
+                              onTapCancel: () => setState(() => isBackPressed = false),
+                              child: AnimatedScale(
+                                scale: isBackPressed ? 1.15 : 1.0,
+                                duration: const Duration(milliseconds: 120),
+                                curve: Curves.easeOut,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 120),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(isBackPressed ? 0.25 : 0.15),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_back,
+                                    color: isBackPressed ? const Color(0xFFD3CECE) : const Color(0xFF383737),
+                                    size: 24,
+                                  ),
                                 ),
                               ),
                             ),
@@ -108,30 +150,40 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                         ),
                       ),
 
-                      // Large microphone icon
+                      // Large microphone icon (animated scale + color on press)
                       GestureDetector(
-                        onTap: _toggleRecording,
-                        child: Container(
-                          width: 124,
-                          height: 124,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFFE8F2FB),
-                            boxShadow: isRecording
-                                ? [
-                                    BoxShadow(
-                                      color: const Color(0xFF5B80A4)
-                                          .withOpacity(0.3),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          child: Icon(
-                            Icons.mic,
-                            color: const Color(0xFF4F6678),
-                            size: 60,
+                        onTapDown: (_) => setState(() => isMicPressed = true),
+                        onTapUp: (_) {
+                          setState(() => isMicPressed = false);
+                          Future.delayed(const Duration(milliseconds: 0), _toggleRecording);
+                        },
+                        onTapCancel: () => setState(() => isMicPressed = false),
+                        child: AnimatedScale(
+                          scale: isMicPressed ? 1.12 : 1.0,
+                          duration: const Duration(milliseconds: 140),
+                          curve: Curves.easeOut,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 140),
+                            width: 124,
+                            height: 124,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isMicPressed ? const Color(0xFFFFD4D0) : const Color(0xFFE8F2FB),
+                              boxShadow: isMicPressed
+                                  ? [
+                                      BoxShadow(
+                                        color: const Color(0xFF5B80A4).withOpacity(0.3),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Icon(
+                              Icons.mic,
+                              color: isMicPressed ? const Color(0xFFFC4E50) : const Color(0xFF4F6678),
+                              size: 60,
+                            ),
                           ),
                         ),
                       ),
@@ -172,22 +224,33 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                               right: 0,
                               bottom: 0,
                               child: GestureDetector(
-                                onTap: _handleEdit,
-                                child: Container(
-                                  width: 34,
-                                  height: 16,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF4F6678),
-                                    borderRadius: BorderRadius.circular(7),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: const Text(
-                                    'Edit',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFFD3CECE),
-                                      fontFamily: 'Inter',
+                                onTapDown: (_) => setState(() => isEditPressed = true),
+                                onTapUp: (_) {
+                                  setState(() => isEditPressed = false);
+                                  _handleEdit();
+                                },
+                                onTapCancel: () => setState(() => isEditPressed = false),
+                                child: AnimatedScale(
+                                  scale: isEditPressed ? 1.12 : 1.0,
+                                  duration: const Duration(milliseconds: 120),
+                                  curve: Curves.easeOut,
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 120),
+                                    width: 34,
+                                    height: 16,
+                                    decoration: BoxDecoration(
+                                      color: isEditPressed ? const Color(0xFF5B80A4) : const Color(0xFF4F6678),
+                                      borderRadius: BorderRadius.circular(7),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: const Text(
+                                      'Edit',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFFD3CECE),
+                                        fontFamily: 'Inter',
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -198,37 +261,41 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Detected mood display
-                      if (detectedMood != null)
+                      // Detected mood display (Figma exact style)
+                      if (detectedMood != null && allowedMoods.contains(detectedMood))
                         Container(
                           width: 300,
                           height: 44,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFE8F2FB),
-                            borderRadius: BorderRadius.circular(15),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Row(
+                          child: Stack(
                             children: [
-                              const Text(
-                                'Detected mood: ',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w400,
-                                  color: Color(0xFF383737),
-                                  fontFamily: 'Arial Rounded MT Bold',
+                              Positioned(
+                                left: 27,
+                                top: 10,
+                                child: Text(
+                                  'Detected mood:',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w400,
+                                    color: Color(0xFF383737),
+                                    fontFamily: 'Arial Rounded MT Bold',
+                                  ),
                                 ),
                               ),
-                              Text(
-                                detectedMood!,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w400,
-                                  color: Color(0xFF615690),
-                                  fontFamily: 'Arial Rounded MT Bold',
+                              Positioned(
+                                left: 190,
+                                top: 10,
+                                child: Text(
+                                  detectedMood!,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w400,
+                                    color: Color(0xFF615690),
+                                    fontFamily: 'Arial Rounded MT Bold',
+                                  ),
                                 ),
                               ),
                             ],
@@ -236,24 +303,35 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                         ),
                       const SizedBox(height: 40),
 
-                      // See Suggestions button
+                      // See Suggestions button (animated scale + color on press)
                       GestureDetector(
-                        onTap: _handleSeeSuggestions,
-                        child: Container(
-                          width: 289,
-                          height: 58,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF5B80A4),
-                            borderRadius: BorderRadius.circular(29),
-                          ),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            'See Suggestions?',
-                            style: TextStyle(
-                              color: Color(0xFFFFFBF7),
-                              fontSize: 22,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
+                        onTapDown: (_) => setState(() => isSeeSuggestionsPressed = true),
+                        onTapUp: (_) {
+                          setState(() => isSeeSuggestionsPressed = false);
+                          _handleSeeSuggestions();
+                        },
+                        onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
+                        child: AnimatedScale(
+                          scale: isSeeSuggestionsPressed ? 1.03 : 1.0,
+                          duration: const Duration(milliseconds: 120),
+                          curve: Curves.easeOut,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 120),
+                            width: 289,
+                            height: 58,
+                            decoration: BoxDecoration(
+                              color: isSeeSuggestionsPressed ? const Color(0xFF3F5F78) : const Color(0xFF5B80A4),
+                              borderRadius: BorderRadius.circular(29),
+                            ),
+                            alignment: Alignment.center,
+                            child: const Text(
+                              'See Suggestions!',
+                              style: TextStyle(
+                                color: Color(0xFFFFFBF7),
+                                fontSize: 22,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'Inter',
+                              ),
                             ),
                           ),
                         ),
@@ -265,6 +343,44 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class VoiceOverlayEditScreen extends StatelessWidget {
+  final String initialText;
+
+  const VoiceOverlayEditScreen({super.key, required this.initialText});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Transcribed Text'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: TextEditingController(text: initialText),
+              maxLines: null,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Edit your transcribed text here...',
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                // TODO: Handle save action
+                Navigator.of(context).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
         ),
       ),
     );

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
 class ResultsScreen extends StatelessWidget {
-  const ResultsScreen({super.key});
+  final String mood;
+  const ResultsScreen({super.key, required this.mood});
 
   void _handleOpenInSpotify() {
     // TODO: Open Spotify app or link
     print('Open in Spotify tapped');
   }
 
-  void _handleTryAnotherMood() {
+  void _handleTryAnotherMood(BuildContext context) {
     Navigator.of(context).pop();
   }
 
@@ -19,118 +20,202 @@ class ResultsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isTryMoodPressed = false;
+    bool isSharePressed = false;
+    bool isOpenSpotifyPressed = false;
     return Scaffold(
       backgroundColor: const Color(0xFFFFFBF7),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.only(top: 20, bottom: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Your Mood Playlist:',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF383737),
-                          fontFamily: 'Arial Rounded MT Bold',
+        child: StatefulBuilder(
+          builder: (context, setState) => SingleChildScrollView(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height, // Responsive height to prevent overflow
+              child: Stack(
+                children: [
+                  // ...existing code...
+                  Positioned(
+                    left: 356,
+                    top: 33,
+                    width: 29,
+                    height: 29,
+                    child: GestureDetector(
+                      onTapDown: (_) => setState(() => isSharePressed = true),
+                      onTapUp: (_) {
+                        setState(() => isSharePressed = false);
+                        _handleShare();
+                      },
+                      onTapCancel: () => setState(() => isSharePressed = false),
+                      child: AnimatedScale(
+                        scale: isSharePressed ? 1.12 : 1.0,
+                        duration: const Duration(milliseconds: 120),
+                        curve: Curves.easeOut,
+                        child: Container(
+                          width: 29,
+                          height: 29,
+                          decoration: const BoxDecoration(),
+                          child: Image.network(
+                            'https://www.figma.com/api/mcp/asset/fa859a6b-9365-4249-abf4-bd16d0ff4188',
+                            color: isSharePressed ? const Color(0xFFD3CECE) : const Color(0xFF383737),
+                          ),
                         ),
                       ),
-                      GestureDetector(
-                        onTap: _handleShare,
-                        child: const Icon(
-                          Icons.share,
-                          color: Color(0xFF383737),
-                          size: 28,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 30),
-                  child: Text(
-                    'Happy Vibes',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF383737),
-                      fontFamily: 'Arial Rounded MT Bold',
                     ),
                   ),
-                ),
-
-                // Song recommendations
-                _SongCard(
-                  songName: 'Song Name 1',
-                  artist: 'Artist 1',
-                  imagePlaceholder: '??',
-                ),
-                const SizedBox(height: 20),
-                _SongCard(
-                  songName: 'Song Name 2',
-                  artist: 'Artist 2',
-                  imagePlaceholder: '??',
-                ),
-                const SizedBox(height: 20),
-                _SongCard(
-                  songName: 'Song Name 3',
-                  artist: 'Artist 3',
-                  imagePlaceholder: '??',
-                ),
-                const SizedBox(height: 20),
-                _SongCard(
-                  songName: 'Song Name 4',
-                  artist: 'Artist 4',
-                  imagePlaceholder: '??',
-                ),
-                const SizedBox(height: 40),
-
-                // Open in Spotify button
-                GestureDetector(
-                  onTap: _handleOpenInSpotify,
-                  child: Container(
+                  // ...existing code...
+                  Positioned(
+                    left: 55.5,
+                    top: 63,
+                    width: 300,
+                    height: 91,
+                    child: Stack(
+                      children: [
+                        // Header text
+                        const Positioned(
+                          left: 0,
+                          top: 0,
+                          right: 0,
+                          height: 51,
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: Text(
+                              'Your Mood Playlist:',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF383737),
+                                fontFamily: 'Arial Rounded MT Bold',
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Mood name (centered below)
+                        Positioned(
+                          left: 52,
+                          top: 41,
+                          width: 196,
+                          height: 50,
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              mood + ' Vibes',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF383737),
+                                fontFamily: 'Arial Rounded MT Bold',
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // ...existing code...
+                  Positioned(
+                    left: 58.5,
+                    top: 164,
+                    width: 294,
+                    height: 79.8,
+                    child: _SongCard(songName: 'Song Name 1', artist: 'Artist 1', imagePlaceholder: '??'),
+                  ),
+                  Positioned(
+                    left: 58.5,
+                    top: 267,
+                    width: 294,
+                    height: 79.8,
+                    child: _SongCard(songName: 'Song Name 2', artist: 'Artist 2', imagePlaceholder: '??'),
+                  ),
+                  Positioned(
+                    left: 58.5,
+                    top: 369,
+                    width: 294,
+                    height: 79.8,
+                    child: _SongCard(songName: 'Song Name 3', artist: 'Artist 3', imagePlaceholder: '??'),
+                  ),
+                  Positioned(
+                    left: 58.5,
+                    top: 471,
+                    width: 294,
+                    height: 79.8,
+                    child: _SongCard(songName: 'Song Name 4', artist: 'Artist 4', imagePlaceholder: '??'),
+                  ),
+                  // ...existing code...
+                  Positioned(
+                    left: 73.5,
+                    top: 583,
                     width: 264,
                     height: 45,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF5B80A4),
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'Open in Spotify?',
-                      style: TextStyle(
-                        color: Color(0xFFFFFBF7),
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Inter',
+                    child: GestureDetector(
+                      onTapDown: (_) => setState(() => isOpenSpotifyPressed = true),
+                      onTapUp: (_) {
+                        setState(() => isOpenSpotifyPressed = false);
+                        _handleOpenInSpotify();
+                      },
+                      onTapCancel: () => setState(() => isOpenSpotifyPressed = false),
+                      child: AnimatedScale(
+                        scale: isOpenSpotifyPressed ? 1.03 : 1.0,
+                        duration: const Duration(milliseconds: 120),
+                        curve: Curves.easeOut,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 120),
+                          width: 264,
+                          height: 45,
+                          decoration: BoxDecoration(
+                            color: isOpenSpotifyPressed ? const Color(0xFF3F5F78) : const Color(0xFF5B80A4),
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            'Open in Spotify?',
+                            style: TextStyle(
+                              color: Color(0xFFFFFBF7),
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-
-                // Try another mood button
-                GestureDetector(
-                  onTap: _handleTryAnotherMood,
-                  child: const Text(
-                    'Try another mood',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFF383737),
-                      fontFamily: 'Arial',
+                  // ...existing code...
+                  Positioned(
+                    left: 140.5,
+                    top: 644,
+                    width: 130,
+                    height: 23,
+                    child: GestureDetector(
+                      onTapDown: (_) => setState(() => isTryMoodPressed = true),
+                      onTapUp: (_) {
+                        setState(() => isTryMoodPressed = false);
+                        _handleTryAnotherMood(context);
+                      },
+                      onTapCancel: () => setState(() => isTryMoodPressed = false),
+                      child: AnimatedScale(
+                        scale: isTryMoodPressed ? 1.08 : 1.0,
+                        duration: const Duration(milliseconds: 120),
+                        curve: Curves.easeOut,
+                        child: Container(
+                          width: 130,
+                          height: 23,
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Try another mood',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                              color: isTryMoodPressed ? const Color(0xFFD3CECE) : const Color(0xFF383737),
+                              fontFamily: 'Arial',
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 30),
-              ],
+                  // ...existing code...
+                ],
+              ),
             ),
           ),
         ),

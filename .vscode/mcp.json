@@ -1,9 +1,16 @@
 {
-	"servers": {
-		"my-mcp-server-7139632b": {
-			"url": "http://127.0.0.1:3845/mcp",
-			"type": "http"
-		}
-	},
-	"inputs": []
+  "servers": {
+    "my-mcp-server-7139632b": {
+      "url": "http://127.0.0.1:3845/mcp",
+      "type": "http"
+    }
+  },
+  "mcpServers": {
+    "TalkToFigma": {
+      "command": "bunx",
+      "args": [
+        "cursor-talk-to-figma-mcp@latest"
+      ]
+    }
+  }
 }

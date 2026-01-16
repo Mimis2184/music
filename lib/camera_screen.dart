@@ -5,7 +5,7 @@ import 'main.dart';
 class CameraScreen extends StatefulWidget {
   final Map<String, String> themeAssets;
   final AppThemeMode themeMode;
-  CameraScreen({Key? key, required this.themeAssets, required this.themeMode}) : super(key: key);
+  const CameraScreen({super.key, required this.themeAssets, required this.themeMode});
 
   @override
   State<CameraScreen> createState() => _CameraScreenState();
@@ -64,183 +64,204 @@ class _CameraScreenState extends State<CameraScreen> {
     return Scaffold(
       backgroundColor: widget.themeMode == AppThemeMode.light ? const Color(0xFFFFFBF7) : const Color(0xFF312F2D),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                // Header with back button and title
-                Padding(
-                  padding: const EdgeInsets.only(top: 20, bottom: 30),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: _handleBack,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.15),
-                                blurRadius: 4,
-                                offset: const Offset(0, 4),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final screenWidth = constraints.maxWidth;
+            final screenHeight = constraints.maxHeight;
+            final baseWidth = 411.0;
+            final baseHeight = 731.0;
+            final scaleW = screenWidth / baseWidth;
+            final scaleH = screenHeight / baseHeight;
+            return SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20 * scaleW),
+                child: Column(
+                  children: [
+                    // Header with back button and title
+                    Padding(
+                      padding: EdgeInsets.only(top: 20 * scaleH, bottom: 30 * scaleH),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            onTap: _handleBack,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.15),
+                                    blurRadius: 4 * scaleW,
+                                    offset: Offset(0, 4 * scaleH),
+                                  ),
+                                ],
                               ),
-                            ],
+                              child: Icon(
+                                Icons.arrow_back,
+                                color: const Color(0xFF383737),
+                                size: 24 * scaleW,
+                              ),
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.arrow_back,
-                            color: Color(0xFF383737),
-                            size: 24,
+                          Text(
+                            'moosik',
+                            style: TextStyle(
+                              fontSize: 36 * scaleW,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF383737),
+                              fontFamily: 'Nunito',
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ),
-                      const Text(
-                        'moosik',
-                        style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF383737),
-                          fontFamily: 'Nunito',
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                    ],
-                  ),
-                ),
-
-                // Analyzing text
-                if (isAnalyzing)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 30),
-                    child: Text(
-                      'Analyzing your expression...',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFF383737),
-                        fontFamily: 'Arial Rounded MT Bold',
+                          SizedBox(width: 24 * scaleW),
+                        ],
                       ),
                     ),
-                  ),
 
-                // Camera window
-                Container(
-                  width: 289,
-                  height: 310,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBF7),
-                    border: Border.all(
-                      color: const Color(0xFF383737),
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          isAnalyzing ? Icons.videocam : Icons.check_circle,
-                          size: 64,
-                          color: isAnalyzing
-                              ? const Color(0xFFD3CECE)
-                              : const Color(0xFF4CAF50),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          isAnalyzing ? 'Analyzing...' : 'Ready!',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Color(0xFF383737),
+                    // Analyzing text
+                    if (isAnalyzing)
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 30 * scaleH),
+                        child: Text(
+                          'Analyzing your expression...',
+                          style: TextStyle(
+                            fontSize: 24 * scaleW,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xFF383737),
                             fontFamily: 'Arial Rounded MT Bold',
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40),
+                      ),
 
-                // Detected mood display (Figma exact style)
-                if (detectedMood != null && !isAnalyzing && allowedMoods.contains(detectedMood))
-                  Container(
-                    width: 300,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F2FB),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          left: 27,
-                          top: 10,
-                          child: Text(
-                            'Detected mood:',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xFF383737),
-                              fontFamily: 'Arial Rounded MT Bold',
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 190,
-                          top: 10,
-                          child: Text(
-                            detectedMood!,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xFF615690),
-                              fontFamily: 'Arial Rounded MT Bold',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                const SizedBox(height: 40),
-
-                // See Suggestions button
-                GestureDetector(
-                  onTapDown: (_) => setState(() => isSeeSuggestionsPressed = true),
-                  onTapUp: (_) {
-                    setState(() => isSeeSuggestionsPressed = false);
-                    _handleSeeSuggestions();
-                  },
-                  onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
-                  child: AnimatedScale(
-                    scale: isSeeSuggestionsPressed ? 1.03 : 1.0,
-                    duration: const Duration(milliseconds: 120),
-                    curve: Curves.easeOut,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 120),
-                      width: 289,
-                      height: 58,
+                    // Camera window
+                    Container(
+                      width: 289 * scaleW,
+                      height: 310 * scaleH,
                       decoration: BoxDecoration(
-                        color: isSeeSuggestionsPressed ? const Color(0xFF3F5F78) : const Color(0xFF5B80A4),
-                        borderRadius: BorderRadius.circular(29),
+                        color: const Color(0xFFFFFBF7),
+                        border: Border.all(
+                          color: const Color(0xFF383737),
+                          width: 2 * scaleW,
+                        ),
+                        borderRadius: BorderRadius.circular(16 * scaleW),
                       ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'See Suggestions!',
-                        style: TextStyle(
-                          color: Color(0xFFFFFBF7),
-                          fontSize: 22,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'Inter',
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              isAnalyzing ? Icons.videocam : Icons.check_circle,
+                              size: 64 * scaleW,
+                              color: isAnalyzing
+                                  ? const Color(0xFFD3CECE)
+                                  : const Color(0xFF4CAF50),
+                            ),
+                            SizedBox(height: 16 * scaleH),
+                            Text(
+                              isAnalyzing ? 'Analyzing...' : 'Ready!',
+                              style: TextStyle(
+                                fontSize: 18 * scaleW,
+                                color: const Color(0xFF383737),
+                                fontFamily: 'Arial Rounded MT Bold',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
+                    SizedBox(height: 40 * scaleH),
+
+                    // Detected mood display (Figma exact style)
+                    if (detectedMood != null && !isAnalyzing && allowedMoods.contains(detectedMood))
+                      Container(
+                        width: 300 * scaleW,
+                        height: 44 * scaleH,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F2FB),
+                          borderRadius: BorderRadius.circular(8 * scaleW),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(left: 27 * scaleW),
+                              child: Text(
+                                'Detected mood:',
+                                style: TextStyle(
+                                  fontSize: 20 * scaleW,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFF383737),
+                                  fontFamily: 'Arial Rounded MT Bold',
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(right: 27 * scaleW),
+                              child: Text(
+                                detectedMood!,
+                                style: TextStyle(
+                                  fontSize: 20 * scaleW,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFF615690),
+                                  fontFamily: 'Arial Rounded MT Bold',
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    SizedBox(height: 40 * scaleH),
+
+                    // See Suggestions button
+                    GestureDetector(
+                      onTapDown: (_) => setState(() => isSeeSuggestionsPressed = true),
+                      onTapUp: (_) {
+                        setState(() => isSeeSuggestionsPressed = false);
+                        _handleSeeSuggestions();
+                      },
+                      onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
+                      child: AnimatedScale(
+                        scale: isSeeSuggestionsPressed ? 1.03 : 1.0,
+                        duration: const Duration(milliseconds: 120),
+                        curve: Curves.easeOut,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 120),
+                          width: 289 * scaleW,
+                          height: 58 * scaleH,
+                          decoration: BoxDecoration(
+                            color: isSeeSuggestionsPressed ? const Color(0xFF3F5F78) : const Color(0xFF5B80A4),
+                            borderRadius: BorderRadius.circular(29 * scaleW),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'See Suggestions!',
+                            style: TextStyle(
+                              color: const Color(0xFFFFFBF7),
+                              fontSize: 22 * scaleW,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Inter',
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 30 * scaleH),
+                  ],
                 ),
-                const SizedBox(height: 30),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

@@ -1,45 +1,49 @@
-import 'package:flutter/material.dart';
 import 'package:music/camera_screen.dart';
-import 'package:music/voice_overlay_screen.dart';
-import 'package:music/results_screen.dart';
-import 'package:music/widgets/mood_button.dart';
-import 'package:music/widgets/action_button.dart';
 
+
+import 'package:flutter/material.dart';
+
+import 'package:music/voice_overlay_screen.dart';
+
+import 'package:music/results_screen.dart';
 
 import 'main.dart';
+
+
+// Figma assets
+const String imgHappy = 'https://www.figma.com/api/mcp/asset/4f2c0b74-d1df-4ecc-b271-fb2a00e82170';
+const String imgAnxious = 'https://www.figma.com/api/mcp/asset/5a470cc2-779d-4b9b-93df-a2700a94f003';
+const String imgRomantic = 'https://www.figma.com/api/mcp/asset/290203f6-4f59-4dfe-a146-eb312738531d';
+const String imgLogo = 'https://www.figma.com/api/mcp/asset/ff332b3e-8869-46dd-8350-bc5faa2df7a9';
+const String imgSad = 'https://www.figma.com/api/mcp/asset/08a83d0e-dffe-41aa-8a23-94ceae79f049';
+const String imgAngry = 'https://www.figma.com/api/mcp/asset/fb68694e-cc40-40d9-813b-37556e259cee';
+const String imgCalm = 'https://www.figma.com/api/mcp/asset/a10cae1e-9734-48f4-b60e-1628fa79be05';
+// Small camera button assets (local)
+const String smallCameraNormal = 'assets/SmallCamera_regurlar_right.png';
+const String smallCameraPressed = 'assets/SmallCamera_pressed_rigth.png';
+// Small mic button assets (local)
+const String smallMicNormal = 'assets/Small.png';
+const String smallMicPressed = 'assets/Variant3.png';
+// See Suggestions button assets (local)
+const String seeSuggestionsNormal = 'assets/Property 1=Default.png';
+const String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
+
 
 class HomeScreen extends StatefulWidget {
   final Map<String, String> themeAssets;
   final AppThemeMode themeMode;
-  const HomeScreen({super.key, required this.themeAssets, required this.themeMode});
+  const HomeScreen({Key? key, required this.themeAssets, required this.themeMode}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+
 class _HomeScreenState extends State<HomeScreen> {
   String? selectedMood;
+  bool isSeeSuggestionsPressed = false;
   bool isCameraPressed = false;
   bool isMicPressed = false;
-  bool isSeeSuggestionsPressed = false;
-
-  // Emoji image URLs from Figma (node 113:694) - Default states
-  final String happyEmoji = "https://www.figma.com/api/mcp/asset/5bdf8c50-be7e-4f1c-a838-b02f2dd6cb1f";
-  final String sadEmoji = "https://www.figma.com/api/mcp/asset/218ebb61-9fad-4f25-b0c3-0c0e301e2196";
-  final String calmEmoji = "https://www.figma.com/api/mcp/asset/05456a95-690a-4eea-b1f6-e6ac76107c1e";
-  final String anxiousEmoji = "https://www.figma.com/api/mcp/asset/a2623142-b131-4a87-abfc-2f0776a41ba0";
-  final String romanticEmoji = "https://www.figma.com/api/mcp/asset/f515bee9-44d2-447f-98e9-3f241d68a6cd";
-  final String angryEmoji = "https://www.figma.com/api/mcp/asset/45fb0bbe-2949-4ed7-b06b-57658881e3d1";
-  
-  // Emoji image URLs from Figma assets page (node 23:35) - Pressed states
-  final String happyEmojiPressed = "https://www.figma.com/api/mcp/asset/8528c9cf-e174-44af-9af2-5d995a7d3881";
-  final String sadEmojiPressed = "https://www.figma.com/api/mcp/asset/c2faef8d-3ffb-4499-a03f-eba24061723b";
-  final String calmEmojiPressed = "https://www.figma.com/api/mcp/asset/5cc43946-f52c-47e3-aba4-efdb757c7daf";
-  final String anxiousEmojiPressed = "https://www.figma.com/api/mcp/asset/a1adf183-971a-4be6-a7b1-dfa3f2ac4ba3";
-  final String romanticEmojiPressed = "https://www.figma.com/api/mcp/asset/38f8d12b-1219-4a11-8211-011a1bc87adb";
-  final String angryEmojiPressed = "https://www.figma.com/api/mcp/asset/e64da4d8-a142-41c4-b875-79c993711461";
-  
-  final String logoUrl = "https://www.figma.com/api/mcp/asset/74fffb3f-7f87-4bdc-a8d1-82eb6a82c753";
 
   void _handleMoodSelection(String mood) {
     setState(() {
@@ -48,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleSeeSuggestions() {
+    setState(() => isSeeSuggestionsPressed = false);
     if (selectedMood != null) {
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -69,10 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleCamera() {
-    // Clear the pressed visual immediately on release, then navigate.
-    setState(() {
-      isCameraPressed = false;
-    });
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => CameraScreen(
@@ -80,17 +81,10 @@ class _HomeScreenState extends State<HomeScreen> {
           themeMode: widget.themeMode,
         ),
       ),
-    ).then((_) {
-      setState(() {
-        isCameraPressed = false;
-      });
-    });
+    );
   }
 
   void _handleMicrophone() {
-    setState(() {
-      isMicPressed = false;
-    });
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => VoiceOverlayScreen(
@@ -98,288 +92,282 @@ class _HomeScreenState extends State<HomeScreen> {
           themeMode: widget.themeMode,
         ),
       ),
-    ).then((_) {
-      setState(() {
-        isMicPressed = false;
-      });
-    });
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: widget.themeMode == AppThemeMode.light ? const Color(0xFFFFFBF7) : const Color(0xFF312F2D),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: SizedBox(
-            width: 411,
-            child: Stack(
+      backgroundColor: const Color(0xFFFFFBF7),
+      body: Stack(
+        children: [
+          // Logo
+          Positioned(
+            left: 26,
+            top: 12,
+            child: SizedBox(
+              width: 174,
+              height: 174,
+              child: Image.network(imgLogo, fit: BoxFit.cover),
+            ),
+          ),
+          // Large 'moosik'
+          Positioned(
+            left: 189,
+            top: 57,
+            child: SizedBox(
+              width: 187,
+              height: 75,
+              child: Text(
+                'moosik',
+                style: const TextStyle(
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 55,
+                  color: Color(0xFF383737),
+                ),
+                textAlign: TextAlign.left,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          // Main message
+          Positioned(
+            left: 48.5,
+            top: 185,
+            child: SizedBox(
+              width: 314,
+              height: 28,
+              child: Text(
+                'How are you feeling today?',
+                style: const TextStyle(
+                  fontFamily: 'Arial Rounded MT Bold',
+                  fontWeight: FontWeight.w400,
+                  fontSize: 24,
+                  color: Color(0xFF383737),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          // Mood buttons row 1
+          Positioned(
+            left: 34.5,
+            top: 235,
+            child: Row(
               children: [
-                // Logo
-                Positioned(
-                  left: 26,
-                  top: 12,
-                  child: SizedBox(
-                    width: 174,
-                    height: 174,
-                    child: Image.network(
-                      logoUrl,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Image.asset(
-                          'assets/logo.png',
-                          fit: BoxFit.contain,
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                // Example: show theme color asset images at the top for debug/demo
-                Positioned(
-                  left: 10,
-                  top: 200,
-                  child: Row(
-                    children: widget.themeAssets.entries.where((e) => e.value.isNotEmpty).map((entry) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Column(
-                        children: [
-                          Image.network(entry.value, width: 32, height: 32),
-                          Text(entry.key, style: const TextStyle(fontSize: 8)),
-                        ],
-                      ),
-                    )).toList(),
-                  ),
-                ),
-
-                // App name "moosik"
-                const Positioned(
-                  left: 189,
-                  top: 61,
-                  child: Text(
-                    'moosik',
-                    style: TextStyle(
-                      fontSize: 55,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF383737),
-                      fontFamily: 'Nunito',
-                    ),
-                  ),
-                ),
-
-                // Main content
-                Padding(
-                  padding: const EdgeInsets.only(top: 200),
-                  child: Column(
-                    children: [
-                      // Title
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 48),
-                        child: Text(
-                          'How are you feeling today?',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xFF383737),
-                            fontFamily: 'Arial Rounded MT Bold',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 35),
-
-                      // First row of moods
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 34),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            MoodButton(
-                              label: 'Happy',
-                              defaultEmojiUrl: happyEmoji,
-                              pressedEmojiUrl: happyEmojiPressed,
-                              isSelected: selectedMood == 'Happy',
-                              onTap: () => _handleMoodSelection('Happy'),
-                              themeAssets: widget.themeAssets,
-                              themeMode: widget.themeMode,
-                            ),
-                            MoodButton(
-                              label: 'Sad',
-                              defaultEmojiUrl: sadEmoji,
-                              pressedEmojiUrl: sadEmojiPressed,
-                              isSelected: selectedMood == 'Sad',
-                              onTap: () => _handleMoodSelection('Sad'),
-                              themeAssets: widget.themeAssets,
-                              themeMode: widget.themeMode,
-                            ),
-                            MoodButton(
-                              label: 'Calm',
-                              defaultEmojiUrl: calmEmoji,
-                              pressedEmojiUrl: calmEmojiPressed,
-                              isSelected: selectedMood == 'Calm',
-                              onTap: () => _handleMoodSelection('Calm'),
-                              themeAssets: widget.themeAssets,
-                              themeMode: widget.themeMode,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Second row of moods
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 34),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            MoodButton(
-                              label: 'Anxious',
-                              defaultEmojiUrl: anxiousEmoji,
-                              pressedEmojiUrl: anxiousEmojiPressed,
-                              isSelected: selectedMood == 'Anxious',
-                              onTap: () => _handleMoodSelection('Anxious'),
-                              themeAssets: widget.themeAssets,
-                              themeMode: widget.themeMode,
-                            ),
-                            MoodButton(
-                              label: 'Romantic',
-                              defaultEmojiUrl: romanticEmoji,
-                              pressedEmojiUrl: romanticEmojiPressed,
-                              isSelected: selectedMood == 'Romantic',
-                              onTap: () => _handleMoodSelection('Romantic'),
-                              themeAssets: widget.themeAssets,
-                              themeMode: widget.themeMode,
-                            ),
-                            MoodButton(
-                              label: 'Angry',
-                              defaultEmojiUrl: angryEmoji,
-                              pressedEmojiUrl: angryEmojiPressed,
-                              isSelected: selectedMood == 'Angry',
-                              onTap: () => _handleMoodSelection('Angry'),
-                              themeAssets: widget.themeAssets,
-                              themeMode: widget.themeMode,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-
-                      // Action buttons
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 115),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            ActionButton(
-                              label: 'Speak',
-                              iconDefault: Image.network(
-                                'https://www.figma.com/api/mcp/asset/0a19ad23-e84b-4d55-b9ff-283b7e6c7b11', // mic button bg
-                                width: 56,
-                                height: 56,
-                              ),
-                              iconPressed: Image.network(
-                                'https://www.figma.com/api/mcp/asset/4e3bdf78-5f51-4ff9-91c0-d90ee71dafd9', // mic pressed (use text color asset as placeholder)
-                                width: 56,
-                                height: 56,
-                              ),
-                              isPressed: isMicPressed,
-                              pressedColor: Colors.transparent,
-                              onTapDown: () => setState(() => isMicPressed = true),
-                              onTapUp: _handleMicrophone,
-                              onTapCancel: () => setState(() => isMicPressed = false),
-                              pressedScale: 1.12,
-                              themeAssets: widget.themeAssets,
-                              themeMode: widget.themeMode,
-                            ),
-                            ActionButton(
-                              label: 'Camera',
-                              iconDefault: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Image.network(
-                                    'https://www.figma.com/api/mcp/asset/0a19ad23-e84b-4d55-b9ff-283b7e6c7b11', // camera button bg
-                                    width: 56,
-                                    height: 56,
-                                  ),
-                                  Image.network(
-                                    'https://www.figma.com/api/mcp/asset/6b87d767-7069-40f9-bbad-72c10e66ca7d', // camera icon
-                                    width: 32,
-                                    height: 32,
-                                  ),
-                                ],
-                              ),
-                              iconPressed: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Image.network(
-                                    'https://www.figma.com/api/mcp/asset/0a19ad23-e84b-4d55-b9ff-283b7e6c7b11',
-                                    width: 56,
-                                    height: 56,
-                                  ),
-                                  Image.network(
-                                    'https://www.figma.com/api/mcp/asset/6b87d767-7069-40f9-bbad-72c10e66ca7d',
-                                    width: 32,
-                                    height: 32,
-                                  ),
-                                ],
-                              ),
-                              isPressed: isCameraPressed,
-                              pressedColor: Colors.transparent,
-                              onTapDown: () => setState(() => isCameraPressed = true),
-                              onTapUp: _handleCamera,
-                              onTapCancel: () => setState(() => isCameraPressed = false),
-                              pressedScale: 1.12,
-                              themeAssets: widget.themeAssets,
-                              themeMode: widget.themeMode,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-
-                      // See Suggestions button (animated scale + color on press)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 61),
-                        child: GestureDetector(
-                          onTapDown: (_) => setState(() => isSeeSuggestionsPressed = true),
-                          onTapUp: (_) {
-                            setState(() => isSeeSuggestionsPressed = false);
-                            _handleSeeSuggestions();
-                          },
-                          onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
-                          child: AnimatedScale(
-                            scale: isSeeSuggestionsPressed ? 1.03 : 1.0,
-                            duration: const Duration(milliseconds: 120),
-                            curve: Curves.easeOut,
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 120),
-                              width: 289,
-                              height: 58,
-                              decoration: BoxDecoration(
-                                color: isSeeSuggestionsPressed ? const Color(0xFF3F5F78) : const Color(0xFF5B80A4),
-                                borderRadius: BorderRadius.circular(29),
-                              ),
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'See Suggestions!',
-                                style: TextStyle(
-                                  color: Color(0xFFFFFBF7),
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Inter',
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                    ],
-                  ),
-                ),
+                _moodButton('Happy', imgHappy, 0),
+                const SizedBox(width: 30),
+                _moodButton('Sad', imgSad, 1),
+                const SizedBox(width: 30),
+                _moodButton('Calm', imgCalm, 2),
               ],
             ),
           ),
+          // Mood buttons row 2
+          Positioned(
+            left: 34.5,
+            top: 363,
+            child: Row(
+              children: [
+                _moodButton('Anxious', imgAnxious, 3),
+                const SizedBox(width: 30),
+                _moodButton('Romantic', imgRomantic, 4),
+                const SizedBox(width: 30),
+                _moodButton('Angry', imgAngry, 5),
+              ],
+            ),
+          ),
+          // Small mic
+          Positioned(
+            left: 115,
+            top: 493,
+            child: GestureDetector(
+              onTapDown: (_) => setState(() => isMicPressed = true),
+              onTapUp: (_) {
+                setState(() => isMicPressed = false);
+                _handleMicrophone();
+              },
+              onTapCancel: () => setState(() => isMicPressed = false),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: 56,
+                    height: 56,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: Image.asset(
+                        isMicPressed ? smallMicPressed : smallMicNormal,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Speak',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                      color: Color(0xFF383737),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Small camera
+          Positioned(
+            left: 240,
+            top: 493,
+            child: GestureDetector(
+              onTapDown: (_) => setState(() => isCameraPressed = true),
+              onTapUp: (_) {
+                setState(() => isCameraPressed = false);
+                _handleCamera();
+              },
+              onTapCancel: () => setState(() => isCameraPressed = false),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: 56,
+                    height: 56,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: Image.asset(
+                        isCameraPressed ? smallCameraPressed : smallCameraNormal,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Camera',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                      color: Color(0xFF383737),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // See Suggestions button
+          Positioned(
+            left: 61,
+            top: 594,
+            child: GestureDetector(
+              onTapDown: (_) => setState(() => isSeeSuggestionsPressed = true),
+              onTapUp: (_) => _handleSeeSuggestions(),
+              onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
+              child: SizedBox(
+                width: 289,
+                height: 58,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(29),
+                  child: Image.asset(
+                    isSeeSuggestionsPressed ? seeSuggestionsPressed : seeSuggestionsNormal,
+                    width: 289,
+                    height: 58,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _moodButton(String label, String imgUrl, int index) {
+    final isSelected = selectedMood == label;
+    return GestureDetector(
+      onTap: () => _handleMoodSelection(label),
+      child: Container(
+        width: 94,
+        height: 102,
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFCBB1E5) : const Color(0xFFDBFBFF),
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 56,
+              height: 56,
+              child: Image.network(imgUrl, fit: BoxFit.contain),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
+                color: Color(0xFF383737),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _smallActionButton(String label, String imgUrl, VoidCallback onTap) {
+    return Column(
+      children: [
+        SizedBox(
+          width: 56,
+          height: 56,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFFFBF7),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+                side: const BorderSide(color: Color(0xFFD3CECE)),
+              ),
+              elevation: 0,
+              padding: EdgeInsets.zero,
+            ),
+            onPressed: onTap,
+            child: Center(
+              child: Image.network(
+                imgUrl,
+                width: 32,
+                height: 32,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w500,
+            fontSize: 13,
+            color: Color(0xFF383737),
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 }

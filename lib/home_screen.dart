@@ -1,14 +1,11 @@
 import 'package:music/camera_screen.dart';
-
+import 'package:music/voice_overlay_screen.dart';
 
 import 'package:flutter/material.dart';
-
-import 'package:music/voice_overlay_screen.dart';
 
 import 'package:music/results_screen.dart';
 
 import 'main.dart';
-
 
 // Figma assets
 const String imgHappy = 'https://www.figma.com/api/mcp/asset/4f2c0b74-d1df-4ecc-b271-fb2a00e82170';
@@ -32,14 +29,14 @@ const String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
 class HomeScreen extends StatefulWidget {
   final Map<String, String> themeAssets;
   final AppThemeMode themeMode;
-  const HomeScreen({Key? key, required this.themeAssets, required this.themeMode}) : super(key: key);
+  const HomeScreen({super.key, required this.themeAssets, required this.themeMode});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-
 class _HomeScreenState extends State<HomeScreen> {
+    bool isSharePressed = false;
   String? selectedMood;
   bool isSeeSuggestionsPressed = false;
   bool isCameraPressed = false;
@@ -328,46 +325,5 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _smallActionButton(String label, String imgUrl, VoidCallback onTap) {
-    return Column(
-      children: [
-        SizedBox(
-          width: 56,
-          height: 56,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFFFBF7),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-                side: const BorderSide(color: Color(0xFFD3CECE)),
-              ),
-              elevation: 0,
-              padding: EdgeInsets.zero,
-            ),
-            onPressed: onTap,
-            child: Center(
-              child: Image.network(
-                imgUrl,
-                width: 32,
-                height: 32,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w500,
-            fontSize: 13,
-            color: Color(0xFF383737),
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
+  // ...existing code...
 }

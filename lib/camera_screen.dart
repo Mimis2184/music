@@ -1,6 +1,13 @@
+
 import 'package:flutter/material.dart';
 import 'package:music/results_screen.dart';
 import 'main.dart';
+
+
+// Figma assets for camera screen prototype
+const String arrowBackImg = 'https://www.figma.com/api/mcp/asset/b648d1ff-574f-43ab-8dd7-4eaffcff844e';
+const String seeSuggestionsNormal = 'assets/Property 1=Default.png';
+const String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
 
 class CameraScreen extends StatefulWidget {
   final Map<String, String> themeAssets;
@@ -12,6 +19,7 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
+    bool _arrowPressed = false;
   static const allowedMoods = [
     'Happy', 'Sad', 'Calm', 'Anxious', 'Romantic', 'Angry'
   ];
@@ -59,210 +67,202 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: widget.themeMode == AppThemeMode.light ? const Color(0xFFFFFBF7) : const Color(0xFF312F2D),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final screenWidth = constraints.maxWidth;
-            final screenHeight = constraints.maxHeight;
-            final baseWidth = 411.0;
-            final baseHeight = 731.0;
-            final scaleW = screenWidth / baseWidth;
-            final scaleH = screenHeight / baseHeight;
-            return SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20 * scaleW),
+      backgroundColor: const Color(0xFFFFFBF7),
+      body: Stack(
+        children: [
+          // Back arrow button (same as voice overlay)
+          Positioned(
+            left: 25,
+            top: 26,
+            child: GestureDetector(
+              onTap: _handleBack,
+              onTapDown: (_) => setState(() => _arrowPressed = true),
+              onTapUp: (_) => setState(() => _arrowPressed = false),
+              onTapCancel: () => setState(() => _arrowPressed = false),
+              child: Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.8),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Image.asset(
+                  _arrowPressed ? 'assets/Property 1=ArrowBackPressed.png' : 'assets/arrow_default.png',
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+          // Small 'moosik' title (top center)
+          Positioned(
+            left: 145,
+            top: 21,
+            child: SizedBox(
+              width: 122,
+              height: 49,
+              child: Text(
+                'moosik',
+                style: const TextStyle(
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 36,
+                  color: Color(0xFF383737),
+                ),
+                textAlign: TextAlign.left,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          // Analyzing your expression text (large and readable, like prototype)
+          Positioned(
+            left: 34,
+            top: 102,
+            child: SizedBox(
+              width: 343,
+              height: 26,
+              child: Text(
+                'Analyzing your expression...',
+                style: const TextStyle(
+                  fontFamily: 'Arial Rounded MT Bold',
+                  fontWeight: FontWeight.w400,
+                  fontSize: 24,
+                  color: Color(0xFF383737),
+                ),
+                textAlign: TextAlign.left,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          // Camera window (centered)
+          Positioned(
+            left: 61,
+            top: 151,
+            child: Container(
+              width: 289,
+              height: 310,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBF7),
+                border: Border.all(
+                  color: const Color(0xFF383737),
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Header with back button and title
-                    Padding(
-                      padding: EdgeInsets.only(top: 20 * scaleH, bottom: 30 * scaleH),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            onTap: _handleBack,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.15),
-                                    blurRadius: 4 * scaleW,
-                                    offset: Offset(0, 4 * scaleH),
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.arrow_back,
-                                color: const Color(0xFF383737),
-                                size: 24 * scaleW,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            'moosik',
-                            style: TextStyle(
-                              fontSize: 36 * scaleW,
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFF383737),
-                              fontFamily: 'Nunito',
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          SizedBox(width: 24 * scaleW),
-                        ],
-                      ),
+                    Icon(
+                      isAnalyzing ? Icons.videocam : Icons.check_circle,
+                      size: 64,
+                      color: isAnalyzing ? const Color(0xFFD3CECE) : const Color(0xFF4CAF50),
                     ),
-
-                    // Analyzing text
-                    if (isAnalyzing)
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 30 * scaleH),
-                        child: Text(
-                          'Analyzing your expression...',
-                          style: TextStyle(
-                            fontSize: 24 * scaleW,
-                            fontWeight: FontWeight.w400,
-                            color: const Color(0xFF383737),
-                            fontFamily: 'Arial Rounded MT Bold',
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                    const SizedBox(height: 16),
+                    Text(
+                      isAnalyzing ? 'Analyzing...' : 'Ready!',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Color(0xFF383737),
+                        fontFamily: 'Arial Rounded MT Bold',
                       ),
-
-                    // Camera window
-                    Container(
-                      width: 289 * scaleW,
-                      height: 310 * scaleH,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFFBF7),
-                        border: Border.all(
-                          color: const Color(0xFF383737),
-                          width: 2 * scaleW,
-                        ),
-                        borderRadius: BorderRadius.circular(16 * scaleW),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              isAnalyzing ? Icons.videocam : Icons.check_circle,
-                              size: 64 * scaleW,
-                              color: isAnalyzing
-                                  ? const Color(0xFFD3CECE)
-                                  : const Color(0xFF4CAF50),
-                            ),
-                            SizedBox(height: 16 * scaleH),
-                            Text(
-                              isAnalyzing ? 'Analyzing...' : 'Ready!',
-                              style: TextStyle(
-                                fontSize: 18 * scaleW,
-                                color: const Color(0xFF383737),
-                                fontFamily: 'Arial Rounded MT Bold',
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 40 * scaleH),
-
-                    // Detected mood display (Figma exact style)
-                    if (detectedMood != null && !isAnalyzing && allowedMoods.contains(detectedMood))
-                      Container(
-                        width: 300 * scaleW,
-                        height: 44 * scaleH,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F2FB),
-                          borderRadius: BorderRadius.circular(8 * scaleW),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.only(left: 27 * scaleW),
-                              child: Text(
-                                'Detected mood:',
-                                style: TextStyle(
-                                  fontSize: 20 * scaleW,
-                                  fontWeight: FontWeight.w400,
-                                  color: const Color(0xFF383737),
-                                  fontFamily: 'Arial Rounded MT Bold',
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(right: 27 * scaleW),
-                              child: Text(
-                                detectedMood!,
-                                style: TextStyle(
-                                  fontSize: 20 * scaleW,
-                                  fontWeight: FontWeight.w400,
-                                  color: const Color(0xFF615690),
-                                  fontFamily: 'Arial Rounded MT Bold',
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    SizedBox(height: 40 * scaleH),
-
-                    // See Suggestions button
-                    GestureDetector(
-                      onTapDown: (_) => setState(() => isSeeSuggestionsPressed = true),
-                      onTapUp: (_) {
-                        setState(() => isSeeSuggestionsPressed = false);
-                        _handleSeeSuggestions();
-                      },
-                      onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
-                      child: AnimatedScale(
-                        scale: isSeeSuggestionsPressed ? 1.03 : 1.0,
-                        duration: const Duration(milliseconds: 120),
-                        curve: Curves.easeOut,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 120),
-                          width: 289 * scaleW,
-                          height: 58 * scaleH,
-                          decoration: BoxDecoration(
-                            color: isSeeSuggestionsPressed ? const Color(0xFF3F5F78) : const Color(0xFF5B80A4),
-                            borderRadius: BorderRadius.circular(29 * scaleW),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'See Suggestions!',
-                            style: TextStyle(
-                              color: const Color(0xFFFFFBF7),
-                              fontSize: 22 * scaleW,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 30 * scaleH),
                   ],
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          ),
+          // Detected mood display
+          if (detectedMood != null && !isAnalyzing && allowedMoods.contains(detectedMood))
+            Positioned(
+              left: 55.5,
+              top: 498,
+              child: Container(
+                width: 300,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F2FB),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 27),
+                      child: Text(
+                        'Detected mood:',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xFF383737),
+                          fontFamily: 'Arial Rounded MT Bold',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 27),
+                      child: Text(
+                        detectedMood!,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xFF615690),
+                          fontFamily: 'Arial Rounded MT Bold',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          // See Suggestions button
+          Positioned(
+            left: 61,
+            top: 579,
+            child: GestureDetector(
+              onTapDown: (_) => setState(() => isSeeSuggestionsPressed = true),
+              onTapUp: (_) {
+                setState(() => isSeeSuggestionsPressed = false);
+                _handleSeeSuggestions();
+              },
+              onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
+              child: SizedBox(
+                width: 289,
+                height: 58,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(29),
+                  child: Image.asset(
+                    isSeeSuggestionsPressed ? seeSuggestionsPressed : seeSuggestionsNormal,
+                    width: 289,
+                    height: 58,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -7,9 +7,9 @@ import 'main.dart';
 import 'home_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// See Suggestions button assets (for pressed state in light mode)
-const String seeSuggestionsNormal = 'assets/Property 1=Default.png';
-const String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
+// Open in Spotify button assets (background only, no text)
+const String openSpotifyBgDefault = 'assets/spotifydefault.png';
+const String openSpotifyBgPressed = 'assets/spotifypressed.png';
 
 class ResultsScreen extends StatefulWidget {
   final String mood;
@@ -457,26 +457,13 @@ class _SpotifyButtonState extends State<_SpotifyButton> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(26),
                     child: Image.asset(
-                      _pressed ? seeSuggestionsPressed : seeSuggestionsNormal,
+                      _pressed ? openSpotifyBgPressed : openSpotifyBgDefault,
                       width: 264,
                       height: 52,
                       fit: BoxFit.cover,
                     ),
                   ),
-                  Positioned.fill(
-                    child: Center(
-                      child: Text(
-                        'Open in Spotify?',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'Arial Rounded MT Bold',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 20,
-                          color: Color(0xFF312F2D),
-                        ),
-                      ),
-                    ),
-                  ),
+                  // No overlay text in light mode; PNG already contains label
                 ],
               ),
             )

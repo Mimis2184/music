@@ -6,25 +6,34 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 // import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 import 'package:flutter/foundation.dart';
 
-
 // Figma assets for camera screen prototype
-const String arrowBackImg = 'https://www.figma.com/api/mcp/asset/b648d1ff-574f-43ab-8dd7-4eaffcff844e';
+const String arrowBackImg =
+    'https://www.figma.com/api/mcp/asset/b648d1ff-574f-43ab-8dd7-4eaffcff844e';
 const String seeSuggestionsNormal = 'assets/Property 1=Default.png';
 const String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
 
 class CameraScreen extends StatefulWidget {
   final Map<String, String> themeAssets;
   final AppThemeMode themeMode;
-  const CameraScreen({super.key, required this.themeAssets, required this.themeMode});
+  const CameraScreen({
+    super.key,
+    required this.themeAssets,
+    required this.themeMode,
+  });
 
   @override
   State<CameraScreen> createState() => _CameraScreenState();
 }
 
 class _CameraScreenState extends State<CameraScreen> {
-    bool _arrowPressed = false;
+  bool _arrowPressed = false;
   static const allowedMoods = [
-    'Happy', 'Sad', 'Calm', 'Anxious', 'Romantic', 'Angry'
+    'Happy',
+    'Sad',
+    'Calm',
+    'Anxious',
+    'Romantic',
+    'Angry',
   ];
   String? detectedMood;
   bool isAnalyzing = true;
@@ -61,7 +70,11 @@ class _CameraScreenState extends State<CameraScreen> {
   Future<void> _initCamera() async {
     _cameras = await availableCameras();
     if (_cameras != null && _cameras!.isNotEmpty) {
-      _cameraController = CameraController(_cameras![0], ResolutionPreset.medium, enableAudio: false);
+      _cameraController = CameraController(
+        _cameras![0],
+        ResolutionPreset.medium,
+        enableAudio: false,
+      );
       await _cameraController!.initialize();
       setState(() {
         _isCameraInitialized = true;
@@ -106,20 +119,24 @@ class _CameraScreenState extends State<CameraScreen> {
       allBytes.putUint8List(plane.bytes);
     }
     final bytes = allBytes.done().buffer.asUint8List();
-    final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
+    final Size imageSize = Size(
+      image.width.toDouble(),
+      image.height.toDouble(),
+    );
     final camera = _cameras![0];
-    final imageRotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation0deg;
-    final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw) ?? InputImageFormat.nv21;
+    final imageRotation =
+        InputImageRotationValue.fromRawValue(camera.sensorOrientation) ??
+        InputImageRotation.rotation0deg;
+    final inputImageFormat =
+        InputImageFormatValue.fromRawValue(image.format.raw) ??
+        InputImageFormat.nv21;
     final metadata = InputImageMetadata(
       size: imageSize,
       rotation: imageRotation,
       format: inputImageFormat,
       bytesPerRow: image.planes[0].bytesPerRow,
     );
-    final inputImage = InputImage.fromBytes(
-      bytes: bytes,
-      metadata: metadata,
-    );
+    final inputImage = InputImage.fromBytes(bytes: bytes, metadata: metadata);
     final faces = await _faceDetector!.processImage(inputImage);
     setState(() {
       _faceFound = faces.isNotEmpty;
@@ -132,7 +149,6 @@ class _CameraScreenState extends State<CameraScreen> {
     _faceDetector?.close();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +181,9 @@ class _CameraScreenState extends State<CameraScreen> {
                   ],
                 ),
                 child: Image.asset(
-                  _arrowPressed ? 'assets/Property 1=ArrowBackPressed.png' : 'assets/arrow_default.png',
+                  _arrowPressed
+                      ? 'assets/Property 1=ArrowBackPressed.png'
+                      : 'assets/arrow_default.png',
                   width: 24,
                   height: 24,
                   fit: BoxFit.contain,
@@ -266,7 +284,9 @@ class _CameraScreenState extends State<CameraScreen> {
                               'Initializing camera...',
                               style: TextStyle(
                                 fontSize: 18,
-                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyLarge?.color,
                                 fontFamily: 'Arial Rounded MT Bold',
                               ),
                               maxLines: 1,
@@ -279,7 +299,9 @@ class _CameraScreenState extends State<CameraScreen> {
             ),
           ),
           // Detected mood display
-          if (detectedMood != null && !isAnalyzing && allowedMoods.contains(detectedMood))
+          if (detectedMood != null &&
+              !isAnalyzing &&
+              allowedMoods.contains(detectedMood))
             Positioned(
               left: 55.5,
               top: 498,
@@ -325,7 +347,8 @@ class _CameraScreenState extends State<CameraScreen> {
                 ),
               ),
             ),
-          // See Suggestions button (Figma style)
+
+          // See Suggestions button (same as HomeScreen)
           Positioned(
             left: 61,
             top: 579,
@@ -335,26 +358,46 @@ class _CameraScreenState extends State<CameraScreen> {
                 setState(() => isSeeSuggestionsPressed = false);
                 _handleSeeSuggestions();
               },
-              onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
-              child: Container(
-                child: Container(
-                  width: 289,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF5B80A4),
-                    borderRadius: BorderRadius.circular(29),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'See Suggestions?',
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w600,
-                        fontSize: 22,
-                        color: Color(0xFFFFFBF7),
+              onTapCancel: () =>
+                  setState(() => isSeeSuggestionsPressed = false),
+              child: SizedBox(
+                width: 289,
+                height: 58,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(29),
+                      child: Image.asset(
+                        isSeeSuggestionsPressed
+                            ? seeSuggestionsPressed
+                            : seeSuggestionsNormal,
+                        width: 289,
+                        height: 58,
+                        fit: BoxFit.cover,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF2D547A)
+                            : null,
+                        colorBlendMode:
+                            Theme.of(context).brightness == Brightness.dark
+                            ? BlendMode.srcATop
+                            : null,
                       ),
                     ),
-                  ),
+                    if (Theme.of(context).brightness == Brightness.dark)
+                      Positioned.fill(
+                        child: Center(
+                          child: Text(
+                            'See Suggestions ?',
+                            style: TextStyle(
+                              fontFamily: 'Arial Rounded MT Bold',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 20,
+                              color: const Color(0xFF312F2D),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),

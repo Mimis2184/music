@@ -1,4 +1,4 @@
-import 'package:music/camera_screen.dart';
+import 'camera_screen.dart';
 import 'package:music/voice_overlay_screen.dart';
 
 import 'package:flutter/material.dart';

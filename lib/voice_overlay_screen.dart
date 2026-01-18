@@ -131,50 +131,162 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               ),
             ),
           ),
-          // See Suggestions button (no extra message above, only button and label)
-          Positioned(
-            left: 61,
-            top: 576,
-            child: GestureDetector(
-              onTapDown: (_) => setState(() => _seeSuggestionsPressed = true),
-              onTapUp: (_) {
-                setState(() => _seeSuggestionsPressed = false);
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ResultsScreen(
-                      mood: _detectedMood,
-                      themeAssets: widget.themeAssets,
-                      themeMode: widget.themeMode,
+
+          // 'moosik' logo or text depending on theme
+          if (widget.themeMode == AppThemeMode.dark)
+            Positioned(
+              left: 145,
+              top: 21,
+              child: SizedBox(
+                width: 122,
+                height: 49,
+                child: Image.asset(
+                  'assets/moosic_dark.png',
+                  width: 122,
+                  height: 49,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            )
+          else
+            Positioned(
+              left: 145,
+              top: 21,
+              child: SizedBox(
+                width: 122,
+                height: 49,
+                child: Center(
+                  child: Text(
+                    'moosik',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w800,
+                      fontSize: 36,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
-                );
-              },
-              onTapCancel: () => setState(() => _seeSuggestionsPressed = false),
-              child: SizedBox(
-                width: 289,
-                height: 58,
-                child: Container(
+                ),
+              ),
+            ),
+
+          // 'Tell us how you feel' text under moosik, matching moosik color
+          Positioned(
+            left: 145,
+            top: 21 + 49 + 8, // 8px gap below logo/text
+            child: SizedBox(
+              width: 122,
+              height: 28,
+              child: Center(
+                child: Text(
+                  'Tell us how you feel',
+                  style: TextStyle(
+                    fontFamily: 'Arial Rounded MT Bold',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 18,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+          // See Suggestions button (light mode: revert to previous custom style)
+          if (widget.themeMode == AppThemeMode.light)
+            Positioned(
+              left: 61,
+              top: 576,
+              child: GestureDetector(
+                onTapDown: (_) => setState(() => _seeSuggestionsPressed = true),
+                onTapUp: (_) {
+                  setState(() => _seeSuggestionsPressed = false);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ResultsScreen(
+                        mood: _detectedMood,
+                        themeAssets: widget.themeAssets,
+                        themeMode: widget.themeMode,
+                      ),
+                    ),
+                  );
+                },
+                onTapCancel: () => setState(() => _seeSuggestionsPressed = false),
+                child: SizedBox(
                   width: 289,
                   height: 58,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF5B80A4),
-                    borderRadius: BorderRadius.circular(29),
+                  child: Container(
+                    width: 289,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      color: _seeSuggestionsPressed ? const Color(0xFF4F6678) : const Color(0xFF5B80A4),
+                      borderRadius: BorderRadius.circular(29),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        'See Suggestions?',
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 22,
+                          color: Color(0xFFFFFBF7),
+                        ),
+                      ),
+                    ),
                   ),
-                  child: Center(
-                    child: Text(
-                      'See Suggestions?',
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w600,
-                        fontSize: 22,
-                        color: Color(0xFFFFFBF7),
+                ),
+              ),
+            )
+          else
+            // Keep original dark mode button
+            Positioned(
+              left: 61,
+              top: 576,
+              child: GestureDetector(
+                onTapDown: (_) => setState(() => _seeSuggestionsPressed = true),
+                onTapUp: (_) {
+                  setState(() => _seeSuggestionsPressed = false);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ResultsScreen(
+                        mood: _detectedMood,
+                        themeAssets: widget.themeAssets,
+                        themeMode: widget.themeMode,
+                      ),
+                    ),
+                  );
+                },
+                onTapCancel: () => setState(() => _seeSuggestionsPressed = false),
+                child: SizedBox(
+                  width: 289,
+                  height: 58,
+                  child: Container(
+                    width: 289,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF5B80A4),
+                      borderRadius: BorderRadius.circular(29),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'See Suggestions?',
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 22,
+                          color: Color(0xFFFFFBF7),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
           // Big Microphone with Ellipse effect when pressed (aligned exactly below 'Tell us how you feel')
           Positioned(
             left: 91.5 + 228/2 - (_micPressed ? 90 : 62),
@@ -276,29 +388,71 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               ),
             ),
           ),
-          // Blue text box (local asset, matches Figma prototype exactly)
-          Positioned(
-            left: 34,
-            top: 325,
-            child: SizedBox(
-              width: 343,
-              height: 150,
-              child: Stack(
-                children: [
-                  ClipRRect(
+          // Text box: color #E8F2FB in light mode, original in dark mode
+          if (widget.themeMode == AppThemeMode.light)
+            Positioned(
+              left: 34,
+              top: 325,
+              child: SizedBox(
+                width: 343,
+                height: 150,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F2FB),
                     borderRadius: BorderRadius.circular(16),
-                    child: Image.asset(
-                      'assets/bluetextbox.png',
-                      width: 343,
-                      height: 150,
-                      fit: BoxFit.cover,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: SingleChildScrollView(
+                        child: Text(
+                          _transcribedText.isNotEmpty ? _transcribedText : 'Say something...!',
+                          style: const TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 20,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  // ...existing code for overlaying text or other widgets on the blue text box...
-                ],
+                ),
+              ),
+            )
+          else
+            Positioned(
+              left: 34,
+              top: 325,
+              child: SizedBox(
+                width: 343,
+                height: 150,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F2FB),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: SingleChildScrollView(
+                        child: Text(
+                          _transcribedText.isNotEmpty ? _transcribedText : 'Say something...!',
+                          style: const TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 20,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
           // Edit button (image asset, changes on press)
           Positioned(
             left: 325,
@@ -322,32 +476,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               ),
             ),
           ),
-          // Moosik logo (small)
-          Positioned(
-            left: 145,
-            top: 21,
-            child: Container(
-              width: 122,
-              height: 49,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Image.asset(
-                'assets/moosik(small).png',
-                width: 122,
-                height: 49,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
+          // (Removed old logo box, replaced with styled text above)
         ],
       ),
     );

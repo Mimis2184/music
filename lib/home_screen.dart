@@ -218,12 +218,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Image.asset(
                             Theme.of(context).brightness == Brightness.dark
                                 ? smallMicDark
-                                : (isMicPressed ? smallMicPressed : smallMicNormal),
+                                : (isMicPressed ? 'assets/Variant3.png' : smallMicNormal),
                             width: 56,
                             height: 56,
                             fit: BoxFit.cover,
-                            color: Theme.of(context).brightness == Brightness.dark ? null : (isMicPressed ? Color(0xFFAEB7C4) : null),
-                            colorBlendMode: Theme.of(context).brightness == Brightness.dark ? null : (isMicPressed ? BlendMode.srcIn : null),
+                            color: Theme.of(context).brightness == Brightness.dark ? null : null,
+                            colorBlendMode: Theme.of(context).brightness == Brightness.dark ? null : null,
                           ),
                         ),
                       ],
@@ -278,12 +278,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Image.asset(
                             Theme.of(context).brightness == Brightness.dark
                                 ? smallCameraDark
-                                : (isCameraPressed ? smallCameraPressed : smallCameraNormal),
+                                : (isCameraPressed ? 'assets/SmallCamera_pressed_rigth.png' : smallCameraNormal),
                             width: 56,
                             height: 56,
                             fit: BoxFit.cover,
-                            color: Theme.of(context).brightness == Brightness.dark ? null : (isCameraPressed ? Color(0xFFAEB7C4) : null),
-                            colorBlendMode: Theme.of(context).brightness == Brightness.dark ? null : (isCameraPressed ? BlendMode.srcIn : null),
+                            color: Theme.of(context).brightness == Brightness.dark ? null : null,
+                            colorBlendMode: Theme.of(context).brightness == Brightness.dark ? null : null,
                           ),
                         ),
                       ],

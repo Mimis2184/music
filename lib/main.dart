@@ -128,6 +128,7 @@ class _MyAppState extends State<MyApp> {
     super.dispose();
   }
 
+  // Allow theme switching via keyboard shortcuts (D for dark, L for light)
   void _handleKeyEvent(RawKeyEvent event) {
     if (event is RawKeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.keyD) {

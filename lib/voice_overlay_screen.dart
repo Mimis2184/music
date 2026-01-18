@@ -191,102 +191,60 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
             ),
           ),
           // See Suggestions button (light mode: revert to previous custom style)
-          if (widget.themeMode == AppThemeMode.light)
-            Positioned(
-              left: 61,
-              top: 576,
-              child: GestureDetector(
-                onTapDown: (_) => setState(() => _seeSuggestionsPressed = true),
-                onTapUp: (_) {
-                  setState(() => _seeSuggestionsPressed = false);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ResultsScreen(
-                        mood: _detectedMood,
-                        themeAssets: widget.themeAssets,
-                        themeMode: widget.themeMode,
-                      ),
-                    ),
-                  );
-                },
-                onTapCancel: () => setState(() => _seeSuggestionsPressed = false),
-                child: SizedBox(
-                  width: 289,
-                  height: 58,
-                  child: Container(
-                    width: 289,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      color: _seeSuggestionsPressed ? const Color(0xFF4F6678) : const Color(0xFF5B80A4),
-                      borderRadius: BorderRadius.circular(29),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        'See Suggestions?',
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 22,
-                          color: Color(0xFFFFFBF7),
-                        ),
-                      ),
+          Positioned(
+            left: 61,
+            top: 576,
+            child: GestureDetector(
+              onTapDown: (_) => setState(() => _seeSuggestionsPressed = true),
+              onTapUp: (_) {
+                setState(() => _seeSuggestionsPressed = false);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ResultsScreen(
+                      mood: _detectedMood,
+                      themeAssets: widget.themeAssets,
+                      themeMode: widget.themeMode,
                     ),
                   ),
-                ),
-              ),
-            )
-          else
-            // Keep original dark mode button
-            Positioned(
-              left: 61,
-              top: 576,
-              child: GestureDetector(
-                onTapDown: (_) => setState(() => _seeSuggestionsPressed = true),
-                onTapUp: (_) {
-                  setState(() => _seeSuggestionsPressed = false);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ResultsScreen(
-                        mood: _detectedMood,
-                        themeAssets: widget.themeAssets,
-                        themeMode: widget.themeMode,
+                );
+              },
+              onTapCancel: () => setState(() => _seeSuggestionsPressed = false),
+              child: SizedBox(
+                width: 289,
+                height: 58,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(29),
+                      child: Image.asset(
+                        Theme.of(context).brightness == Brightness.dark
+                            ? (_seeSuggestionsPressed ? seeSuggestionsPressed : seeSuggestionsNormal)
+                            : (_seeSuggestionsPressed ? seeSuggestionsPressed : seeSuggestionsNormal),
+                        width: 289,
+                        height: 58,
+                        fit: BoxFit.cover,
+                        color: Theme.of(context).brightness == Brightness.dark ? Color(0xFF2D547A) : null,
+                        colorBlendMode: Theme.of(context).brightness == Brightness.dark ? BlendMode.srcATop : null,
                       ),
                     ),
-                  );
-                },
-                onTapCancel: () => setState(() => _seeSuggestionsPressed = false),
-                child: SizedBox(
-                  width: 289,
-                  height: 58,
-                  child: Container(
-                    width: 289,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF5B80A4),
-                      borderRadius: BorderRadius.circular(29),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'See Suggestions?',
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 22,
-                          color: Color(0xFFFFFBF7),
+                    Positioned.fill(
+                      child: Center(
+                        child: Text(
+                          'See Suggestions->',
+                          style: TextStyle(
+                            fontFamily: 'Arial Rounded MT Bold',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 20,
+                            color: Color(0xFF312F2D),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
+          ),
           // Big Microphone with Ellipse effect when pressed (aligned exactly below 'Tell us how you feel')
           Positioned(
             left: 91.5 + 228/2 - (_micPressed ? 90 : 62),

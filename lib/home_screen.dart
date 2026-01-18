@@ -20,7 +20,7 @@ const String imgCalm = 'https://www.figma.com/api/mcp/asset/a10cae1e-9734-48f4-b
 const String smallCameraNormal = 'assets/SmallCamera_regurlar_right.png';
 const String smallCameraPressed = 'assets/SmallCamera_pressed_rigth.png';
 // Small mic button assets (local)
-const String smallMicNormal = 'assets/Small.png';
+const String smallMicNormal = 'assets/1.png';
 const String smallMicPressed = 'assets/Variant3.png';
 const String smallMicDark = 'assets/smallmic_dark.png';
 const String smallMicPressedDark = 'assets/smallmicpresseddark.png';
@@ -217,15 +217,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(28),
-                          child: Image.asset(
-                            Theme.of(context).brightness == Brightness.dark
-                                ? (isMicPressed ? smallMicPressedDark : smallMicDark)
-                                : (isMicPressed ? smallMicPressed : smallMicNormal),
-                            width: 56,
-                            height: 56,
-                            fit: BoxFit.cover,
-                            color: Theme.of(context).brightness == Brightness.dark ? null : null,
-                            colorBlendMode: Theme.of(context).brightness == Brightness.dark ? null : null,
+                          child: Center(
+                            child: Image.asset(
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? (isMicPressed ? smallMicPressedDark : smallMicDark)
+                                  : (isMicPressed ? smallMicPressed : smallMicNormal),
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.contain,
+                              color: Theme.of(context).brightness == Brightness.dark ? null : null,
+                              colorBlendMode: Theme.of(context).brightness == Brightness.dark ? null : null,
+                            ),
                           ),
                         ),
                       ],

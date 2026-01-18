@@ -1,11 +1,15 @@
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
-
 import 'main.dart';
 import 'home_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+// See Suggestions button assets (for pressed state in light mode)
+const String seeSuggestionsNormal = 'assets/Property 1=Default.png';
+const String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
 
 class ResultsScreen extends StatefulWidget {
   final String mood;
@@ -438,40 +442,73 @@ class _SpotifyButtonState extends State<_SpotifyButton> {
 
   @override
   Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
     return GestureDetector(
       onTap: widget.onPressed,
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
-      child: Container(
-        width: 264,
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF5B80A4),
-          borderRadius: BorderRadius.circular(50),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+      child: isLight
+          ? SizedBox(
+              width: 264,
+              height: 52,
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(26),
+                    child: Image.asset(
+                      _pressed ? seeSuggestionsPressed : seeSuggestionsNormal,
+                      width: 264,
+                      height: 52,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Center(
+                      child: Text(
+                        'Open in Spotify?',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Arial Rounded MT Bold',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 20,
+                          color: Color(0xFF312F2D),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Container(
+              width: 264,
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: _pressed ? const Color(0xFF3A5A7A) : const Color(0xFF5B80A4),
+                borderRadius: BorderRadius.circular(50),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  'Open in Spotify?',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 24,
+                    letterSpacing: 0.5,
+                    color: Color(0xFFFFFBF7),
+                  ),
+                ),
+              ),
             ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            'Open in Spotify?',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w700,
-              fontSize: 24,
-              letterSpacing: 0.5,
-              color: Color(0xFFFFFBF7),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

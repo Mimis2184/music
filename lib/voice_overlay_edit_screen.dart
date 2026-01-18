@@ -13,47 +13,13 @@ class VoiceOverlayEditScreen extends StatefulWidget {
 }
 
 class _VoiceOverlayEditScreenState extends State<VoiceOverlayEditScreen> {
+		void _onOkPressed() {
+			Navigator.of(context).pop({'text': _mirroredText, 'mood': _detectedMood});
+		}
 	static const String textBoxAsset = "assets/bluetextbox.png";
 	final TextEditingController _controller = TextEditingController();
 	String _mirroredText = '';
 	String _detectedMood = 'Happy';
-
-	@override
-	void initState() {
-		super.initState();
-		_controller.text = widget.initialText;
-		_mirroredText = widget.initialText;
-		_detectedMood = _analyzeEmotion(widget.initialText);
-		_controller.addListener(_onTextChanged);
-	}
-
-	@override
-	void dispose() {
-		_controller.dispose();
-		super.dispose();
-	}
-
-	void _onTextChanged() {
-		setState(() {
-			_mirroredText = _controller.text;
-			_detectedMood = _analyzeEmotion(_mirroredText);
-		});
-	}
-
-	String _analyzeEmotion(String text) {
-		final lower = text.toLowerCase();
-		if (lower.contains('happy') || lower.contains('joy') || lower.contains('excited')) return 'Happy';
-		if (lower.contains('sad') || lower.contains('down') || lower.contains('cry')) return 'Sad';
-		if (lower.contains('angry') || lower.contains('mad') || lower.contains('furious')) return 'Angry';
-		if (lower.contains('calm') || lower.contains('relaxed')) return 'Calm';
-		if (lower.contains('anxious') || lower.contains('nervous')) return 'Anxious';
-		if (lower.contains('romantic') || lower.contains('love')) return 'Romantic';
-		return 'Neutral';
-	}
-
-	void _onOkPressed() {
-		Navigator.of(context).pop({'text': _mirroredText, 'mood': _detectedMood});
-	}
 
 	void _onCancelPressed() {
 		Navigator.of(context).pop();
@@ -131,25 +97,21 @@ class _VoiceOverlayEditScreenState extends State<VoiceOverlayEditScreen> {
 						child: SizedBox(
 							width: 343,
 							height: 150,
-							child: Stack(
-								children: [
-									ClipRRect(
-										borderRadius: BorderRadius.circular(16),
-										child: Image.asset(textBoxAsset, fit: BoxFit.cover),
+							child: Container(
+								decoration: BoxDecoration(
+									color: const Color(0xFFE8F2FB),
+									borderRadius: BorderRadius.circular(16),
+								),
+								padding: const EdgeInsets.all(20),
+								child: Align(
+									alignment: Alignment.topLeft,
+									child: Text(
+										_mirroredText,
+										style: TextStyle(fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
+										maxLines: 5,
+										overflow: TextOverflow.ellipsis,
 									),
-									Padding(
-										padding: const EdgeInsets.all(20),
-										child: Align(
-											alignment: Alignment.topLeft,
-											child: Text(
-												_mirroredText,
-												style: TextStyle(fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
-												maxLines: 5,
-												overflow: TextOverflow.ellipsis,
-											),
-										),
-									),
-								],
+								),
 							),
 						),
 					),

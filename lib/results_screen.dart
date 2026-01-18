@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'main.dart';
 import 'home_screen.dart';
@@ -75,10 +76,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
       url = 'https://open.spotify.com/playlist/1OvEwx07iqXhhDVB4AlVmo?si=d483e9244c2b46b7';
     }
     if (url.isNotEmpty) {
-      Clipboard.setData(ClipboardData(text: url));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Playlist link copied!'), duration: Duration(seconds: 2)),
-      );
+      Share.share(url, subject: 'Moosik playlist');
     }
   }
 

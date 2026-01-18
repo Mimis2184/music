@@ -23,7 +23,9 @@ const String smallCameraPressed = 'assets/SmallCamera_pressed_rigth.png';
 const String smallMicNormal = 'assets/Small.png';
 const String smallMicPressed = 'assets/Variant3.png';
 const String smallMicDark = 'assets/smallmic_dark.png';
+const String smallMicPressedDark = 'assets/smallmicpresseddark.png';
 const String smallCameraDark = 'assets/smallcamera_dark.png';
+const String smallCameraPressedDark = 'assets/smallcamerapresseddark.png';
 // See Suggestions button assets (local)
 const String seeSuggestionsNormal = 'assets/Property 1=Default.png';
 const String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
@@ -217,8 +219,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(28),
                           child: Image.asset(
                             Theme.of(context).brightness == Brightness.dark
-                                ? smallMicDark
-                                : (isMicPressed ? 'assets/Variant3.png' : smallMicNormal),
+                                ? (isMicPressed ? smallMicPressedDark : smallMicDark)
+                                : (isMicPressed ? smallMicPressed : smallMicNormal),
                             width: 56,
                             height: 56,
                             fit: BoxFit.cover,
@@ -277,8 +279,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(28),
                           child: Image.asset(
                             Theme.of(context).brightness == Brightness.dark
-                                ? smallCameraDark
-                                : (isCameraPressed ? 'assets/SmallCamera_pressed_rigth.png' : smallCameraNormal),
+                                ? (isCameraPressed ? smallCameraPressedDark : smallCameraDark)
+                                : (isCameraPressed ? smallCameraPressed : smallCameraNormal),
                             width: 56,
                             height: 56,
                             fit: BoxFit.cover,

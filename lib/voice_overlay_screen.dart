@@ -88,8 +88,8 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
       final String arrowDefault = 'assets/arrow_default.png';
       final String arrowPressed = 'assets/Property 1=ArrowBackPressed.png';
       // Use local assets for mic
-      final String micDefault = 'assets/micdef.png';
-      final String micPressed = 'assets/micpre.png';
+      final String micDefault = Theme.of(context).brightness == Brightness.light ? 'assets/mic_def.png' : 'assets/micdef.png';
+      final String micPressed = Theme.of(context).brightness == Brightness.light ? 'assets/mic_press.png' : 'assets/micpre.png';
       final String seeSuggestionsNormal = 'assets/Property 1=Default.png';
       final String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
       final String imgTextBox = "https://www.figma.com/api/mcp/asset/cbbbe656-6609-4d84-9838-28860074c579";
@@ -430,7 +430,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                 height: 150,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F2FB),
+                    color: const Color(0xFF727475),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Padding(
@@ -444,7 +444,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w500,
                             fontSize: 20,
-                            color: Colors.black,
+                            color: Colors.white,
                           ),
                         ),
                       ),

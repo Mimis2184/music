@@ -37,6 +37,8 @@ dependencies:
   google_mlkit_face_detection: ^0.10.0
   shared_preferences: ^2.2.2
 
+  share_plus: ^7.2.1
+
  
 
   # The following adds the Cupertino Icons font to your application.

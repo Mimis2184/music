@@ -49,10 +49,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  AppThemeMode _themeMode = AppThemeMode.light;
-
   // Map of color asset URLs for each mode
-  // Asset URLs remain unchanged
   final Map<String, String> lightModeAssets = {
     'buttonColor1': 'https://www.figma.com/api/mcp/asset/86afdfa4-e237-4663-a16e-b541b735ed10',
     'buttonColor2': 'https://www.figma.com/api/mcp/asset/6e3d98e7-3105-44ae-ad67-a1ec1076dc00',
@@ -75,8 +72,6 @@ class _MyAppState extends State<MyApp> {
     'micColor': 'https://www.figma.com/api/mcp/asset/e03d2230-a8a8-4c23-b402-2d1d7d029db2',
     'background': '',
   };
-
-  Map<String, String> get currentAssets => _themeMode == AppThemeMode.light ? lightModeAssets : darkModeAssets;
 
   ThemeData get lightTheme => ThemeData(
         brightness: Brightness.light,
@@ -104,13 +99,13 @@ class _MyAppState extends State<MyApp> {
         ),
       );
 
+
   String? _lastMood;
   bool _checkedPrefs = false;
 
   @override
   void initState() {
     super.initState();
-    RawKeyboard.instance.addListener(_handleKeyEvent);
     _restoreLastMood();
   }
 
@@ -123,40 +118,24 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-  void dispose() {
-    RawKeyboard.instance.removeListener(_handleKeyEvent);
-    super.dispose();
-  }
-
-  // Allow theme switching via keyboard shortcuts (D for dark, L for light)
-  void _handleKeyEvent(RawKeyEvent event) {
-    if (event is RawKeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.keyD) {
-        setState(() {
-          _themeMode = AppThemeMode.dark;
-        });
-      } else if (event.logicalKey == LogicalKeyboardKey.keyL) {
-        setState(() {
-          _themeMode = AppThemeMode.light;
-        });
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     if (!_checkedPrefs) {
       return const MaterialApp(home: Scaffold(body: Center(child: CircularProgressIndicator())));
     }
+    // Use system brightness to select theme assets and mode
+    final brightness = MediaQuery.platformBrightnessOf(context);
+    final isDark = brightness == Brightness.dark;
+    final assets = isDark ? darkModeAssets : lightModeAssets;
+    final themeMode = isDark ? AppThemeMode.dark : AppThemeMode.light;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Moosik App',
       theme: lightTheme,
       darkTheme: darkTheme,
-      themeMode: _themeMode == AppThemeMode.light ? ThemeMode.light : ThemeMode.dark,
+      themeMode: ThemeMode.system,
       home: _lastMood != null
-          ? ResultsScreen(mood: _lastMood!, themeAssets: currentAssets, themeMode: _themeMode)
-          : HomeScreen(themeAssets: currentAssets, themeMode: _themeMode),
+          ? ResultsScreen(mood: _lastMood!, themeAssets: assets, themeMode: themeMode)
+          : HomeScreen(themeAssets: assets, themeMode: themeMode),
     );
   }
 }

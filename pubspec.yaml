@@ -67,8 +67,8 @@ flutter:
     - assets/sharebutton_figma.png
 
     # Explicitly include dark mode mic and camera icons
-     - assets/smallmic_dark.png
-     - assets/smallcamera_dark.png
+    - assets/smallmic_dark.png
+    - assets/smallcamera_dark.png
     
 
 

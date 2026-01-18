@@ -25,8 +25,8 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
       final String arrowDefault = 'assets/arrow_default.png';
       final String arrowPressed = 'assets/Property 1=ArrowBackPressed.png';
       // Use local assets for mic
-      final String micDefault = 'assets/BIgMic_default.png';
-      final String micPressed = 'assets/BigMic_pressed_right.png';
+      final String micDefault = 'assets/micdef.png';
+      final String micPressed = 'assets/micpre.png';
       final String seeSuggestionsNormal = 'assets/Property 1=Default.png';
       final String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
       final String imgTextBox = "https://www.figma.com/api/mcp/asset/cbbbe656-6609-4d84-9838-28860074c579";
@@ -167,7 +167,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Image.asset(
-                  'assets/textbox_figma.png',
+                  'assets/bluetextbox.png',
                   width: 343,
                   height: 150,
                   fit: BoxFit.cover,
@@ -196,7 +196,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               ),
             ),
           ),
-          // Edit button (Figma prototype style, moved left to be inside the text box)
+          // Edit button (image asset, changes on press)
           Positioned(
             left: 325,
             top: 453,
@@ -214,22 +214,14 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                 );
               },
               onTapCancel: () => setState(() => _editPressed = false),
-              child: Container(
+              child: SizedBox(
                 width: 34,
                 height: 16,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4F6678),
-                  borderRadius: BorderRadius.circular(7),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'Edit',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 10,
-                    color: _editPressed ? const Color(0xFFD3CECE) : const Color(0xFFD3CECE),
-                  ),
+                child: Image.asset(
+                  _editPressed ? 'assets/edit2.png' : 'assets/edit1.png',
+                  width: 34,
+                  height: 16,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),

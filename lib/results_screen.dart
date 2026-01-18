@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'main.dart';
 
-
-
 class ResultsScreen extends StatefulWidget {
   final String mood;
   final Map<String, String> themeAssets;
@@ -15,8 +13,9 @@ class ResultsScreen extends StatefulWidget {
 }
 
 class _ResultsScreenState extends State<ResultsScreen> {
-  // Local Figma asset
-  static const String shareIconProto = 'assets/share_icon_proto.png';
+  // Share button assets
+  static const String shareDefault = 'assets/sharebutton_default.png';
+  static const String sharePressed = 'assets/sharebutton_pressed.png';
 
   void _handleOpenInSpotify() {
     // TODO: Open Spotify app or link
@@ -33,29 +32,17 @@ class _ResultsScreenState extends State<ResultsScreen> {
   @override
   Widget build(BuildContext context) {
     bool isTryMoodPressed = false;
-    bool isOpenSpotifyPressed = false;
     return Scaffold(
       backgroundColor: const Color(0xFFFFFBF7),
       body: Stack(
         children: [
-          // Share button (Figma asset)
+          // Share button (image asset, changes on press)
           Positioned(
             left: 356,
             top: 33,
             width: 29,
             height: 29,
-            child: GestureDetector(
-              onTap: _handleShare,
-              child: Container(
-                width: 29,
-                height: 29,
-                decoration: const BoxDecoration(),
-                child: Image.asset(
-                  shareIconProto,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
+            child: _ShareButton(onPressed: _handleShare),
           ),
           // Try another mood button
           Positioned(
@@ -160,40 +147,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
             height: 79.8,
             child: _FigmaSongCard(songName: 'Song Name 4', artist: 'Artist 4'),
           ),
-          // Open in Spotify button (Figma style)
+          // Open in Spotify button (image asset, changes on press)
           Positioned(
             left: 73.5,
             top: 583,
             width: 264,
             height: 45,
-            child: GestureDetector(
-              onTapDown: (_) => setState(() => isOpenSpotifyPressed = true),
-              onTapUp: (_) {
-                setState(() => isOpenSpotifyPressed = false);
-                _handleOpenInSpotify();
-              },
-              onTapCancel: () => setState(() => isOpenSpotifyPressed = false),
-              child: Container(
-                width: 264,
-                height: 45,
-                decoration: BoxDecoration(
-                  color: isOpenSpotifyPressed ? const Color(0xFF3F5F78) : const Color(0xFF5B80A4),
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                alignment: Alignment.center,
-                child: const Text(
-                  'Open in Spotify?',
-                  style: TextStyle(
-                    color: Color(0xFFFFFBF7),
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Inter',
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
+            child: _SpotifyButton(onPressed: _handleOpenInSpotify),
           ),
         ],
       ),
@@ -201,9 +161,73 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 }
 
+// Custom Share Button widget (must be outside the class)
+class _ShareButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  const _ShareButton({required this.onPressed});
+
+  @override
+  State<_ShareButton> createState() => _ShareButtonState();
+}
+
+class _ShareButtonState extends State<_ShareButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onPressed,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: SizedBox(
+        width: 29,
+        height: 29,
+        child: Image.asset(
+          _pressed ? _ResultsScreenState.sharePressed : _ResultsScreenState.shareDefault,
+          width: 29,
+          height: 29,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+}
+
+// Custom Spotify Button widget (must be outside the class)
+class _SpotifyButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  const _SpotifyButton({required this.onPressed});
+
+  @override
+  State<_SpotifyButton> createState() => _SpotifyButtonState();
+}
+
+class _SpotifyButtonState extends State<_SpotifyButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onPressed,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: SizedBox(
+        width: 264,
+        height: 45,
+        child: Image.asset(
+          _pressed ? 'assets/spotifypressed.png' : 'assets/spotifydefault.png',
+          width: 264,
+          height: 45,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+}
 
 // Figma style song card
-
 
 // Figma node 23:38 style song card
 class _FigmaSongCard extends StatelessWidget {

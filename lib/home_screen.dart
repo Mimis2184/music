@@ -2,6 +2,7 @@ import 'package:music/camera_screen.dart';
 import 'package:music/voice_overlay_screen.dart';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:music/results_screen.dart';
 
@@ -21,6 +22,8 @@ const String smallCameraPressed = 'assets/SmallCamera_pressed_rigth.png';
 // Small mic button assets (local)
 const String smallMicNormal = 'assets/Small.png';
 const String smallMicPressed = 'assets/Variant3.png';
+const String smallMicDark = 'assets/smallmic_dark.png';
+const String smallCameraDark = 'assets/smallcamera_dark.png';
 // See Suggestions button assets (local)
 const String seeSuggestionsNormal = 'assets/Property 1=Default.png';
 const String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
@@ -48,9 +51,15 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _handleSeeSuggestions() {
+  Future<void> _persistMood(String mood) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('lastMood', mood);
+  }
+
+  void _handleSeeSuggestions() async {
     setState(() => isSeeSuggestionsPressed = false);
     if (selectedMood != null) {
+      await _persistMood(selectedMood!);
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => ResultsScreen(
@@ -95,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFBF7),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           // Logo
@@ -117,11 +126,11 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 75,
               child: Text(
                 'moosik',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Nunito',
                   fontWeight: FontWeight.w800,
                   fontSize: 55,
-                  color: Color(0xFF383737),
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
                 textAlign: TextAlign.left,
                 maxLines: 1,
@@ -138,11 +147,11 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 28,
               child: Text(
                 'How are you feeling today?',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Arial Rounded MT Bold',
                   fontWeight: FontWeight.w400,
                   fontSize: 24,
-                  color: Color(0xFF383737),
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -192,24 +201,42 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     width: 56,
                     height: 56,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(28),
-                      child: Image.asset(
-                        isMicPressed ? smallMicPressed : smallMicNormal,
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
-                      ),
+                    child: Stack(
+                      children: [
+                        // Background circle for dark mode
+                        if (Theme.of(context).brightness == Brightness.dark)
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Color(0xFF312F2D),
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                          ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(28),
+                          child: Image.asset(
+                            Theme.of(context).brightness == Brightness.dark
+                                ? smallMicDark
+                                : (isMicPressed ? smallMicPressed : smallMicNormal),
+                            width: 56,
+                            height: 56,
+                            fit: BoxFit.cover,
+                            color: Theme.of(context).brightness == Brightness.dark ? null : (isMicPressed ? Color(0xFFAEB7C4) : null),
+                            colorBlendMode: Theme.of(context).brightness == Brightness.dark ? null : (isMicPressed ? BlendMode.srcIn : null),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'Speak',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w500,
                       fontSize: 13,
-                      color: Color(0xFF383737),
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -234,24 +261,42 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     width: 56,
                     height: 56,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(28),
-                      child: Image.asset(
-                        isCameraPressed ? smallCameraPressed : smallCameraNormal,
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
-                      ),
+                    child: Stack(
+                      children: [
+                        // Background circle for dark mode
+                        if (Theme.of(context).brightness == Brightness.dark)
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Color(0xFF312F2D),
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                          ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(28),
+                          child: Image.asset(
+                            Theme.of(context).brightness == Brightness.dark
+                                ? smallCameraDark
+                                : (isCameraPressed ? smallCameraPressed : smallCameraNormal),
+                            width: 56,
+                            height: 56,
+                            fit: BoxFit.cover,
+                            color: Theme.of(context).brightness == Brightness.dark ? null : (isCameraPressed ? Color(0xFFAEB7C4) : null),
+                            colorBlendMode: Theme.of(context).brightness == Brightness.dark ? null : (isCameraPressed ? BlendMode.srcIn : null),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'Camera',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w500,
                       fontSize: 13,
-                      color: Color(0xFF383737),
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -271,14 +316,34 @@ class _HomeScreenState extends State<HomeScreen> {
               child: SizedBox(
                 width: 289,
                 height: 58,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(29),
-                  child: Image.asset(
-                    isSeeSuggestionsPressed ? seeSuggestionsPressed : seeSuggestionsNormal,
-                    width: 289,
-                    height: 58,
-                    fit: BoxFit.cover,
-                  ),
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(29),
+                      child: Image.asset(
+                        isSeeSuggestionsPressed ? seeSuggestionsPressed : seeSuggestionsNormal,
+                        width: 289,
+                        height: 58,
+                        fit: BoxFit.cover,
+                        color: Theme.of(context).brightness == Brightness.dark ? Color(0xFF2D547A) : null,
+                        colorBlendMode: Theme.of(context).brightness == Brightness.dark ? BlendMode.srcATop : null,
+                      ),
+                    ),
+                    if (Theme.of(context).brightness == Brightness.dark)
+                      Positioned.fill(
+                        child: Center(
+                          child: Text(
+                            'See Suggestions ?',
+                            style: TextStyle(
+                              fontFamily: 'Arial Rounded MT Bold',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 20,
+                              color: Color(0xFF312F2D),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -296,7 +361,13 @@ class _HomeScreenState extends State<HomeScreen> {
         width: 94,
         height: 102,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFCBB1E5) : const Color(0xFFDBFBFF),
+          color: isSelected
+              ? (Theme.of(context).brightness == Brightness.light
+                  ? AppColors.lightSelectedMood
+                  : AppColors.darkSelectedMood)
+              : (Theme.of(context).brightness == Brightness.light
+                  ? AppColors.lightButtonColor2
+                  : Theme.of(context).primaryColor),
           borderRadius: BorderRadius.circular(28),
         ),
         child: Column(
@@ -305,16 +376,17 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: 56,
               height: 56,
+              // Ensure emoji is rendered with original color, no tint
               child: Image.network(imgUrl, fit: BoxFit.contain),
             ),
             const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w500,
                 fontSize: 16,
-                color: Color(0xFF383737),
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

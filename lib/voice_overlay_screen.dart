@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import 'results_screen.dart';
 import 'voice_overlay_edit_screen.dart';
@@ -19,6 +20,68 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
   bool _arrowPressed = false;
   bool _seeSuggestionsPressed = false;
   bool _editPressed = false;
+
+  late stt.SpeechToText _speech;
+  String _transcribedText = '';
+  String _detectedMood = 'Happy';
+  bool _isListening = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText();
+  }
+
+  void _startListening() async {
+    bool available = await _speech.initialize();
+    if (available) {
+      setState(() => _isListening = true);
+      _speech.listen(
+        onResult: (result) {
+          setState(() {
+            _transcribedText = result.recognizedWords;
+            _detectedMood = _analyzeEmotion(_transcribedText);
+          });
+        },
+      );
+    }
+  }
+
+  void _stopListening() async {
+    await _speech.stop();
+    setState(() => _isListening = false);
+  }
+
+  String _analyzeEmotion(String text) {
+    // Simple keyword-based emotion detection
+    final lower = text.toLowerCase();
+    if (lower.contains('happy') || lower.contains('joy') || lower.contains('excited')) return 'Happy';
+    if (lower.contains('sad') || lower.contains('down') || lower.contains('cry')) return 'Sad';
+    if (lower.contains('angry') || lower.contains('mad') || lower.contains('furious')) return 'Angry';
+    if (lower.contains('calm') || lower.contains('relaxed')) return 'Calm';
+    if (lower.contains('anxious') || lower.contains('nervous')) return 'Anxious';
+    if (lower.contains('romantic') || lower.contains('love')) return 'Romantic';
+    return 'Neutral';
+  }
+
+  Future<void> _editText() async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => VoiceOverlayEditScreen(
+          themeAssets: widget.themeAssets,
+          themeMode: widget.themeMode,
+          initialText: _transcribedText,
+        ),
+      ),
+    );
+    if (result != null && result is Map) {
+      setState(() {
+        _transcribedText = result['text'] ?? '';
+        _detectedMood = result['mood'] ?? 'Neutral';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Asset URLs from Figma
@@ -32,7 +95,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
       final String imgTextBox = "https://www.figma.com/api/mcp/asset/cbbbe656-6609-4d84-9838-28860074c579";
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFBF7),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           // Back arrow
@@ -68,7 +131,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               ),
             ),
           ),
-          // See Suggestions button
+          // See Suggestions button (no extra message above, only button and label)
           Positioned(
             left: 61,
             top: 576,
@@ -76,11 +139,10 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               onTapDown: (_) => setState(() => _seeSuggestionsPressed = true),
               onTapUp: (_) {
                 setState(() => _seeSuggestionsPressed = false);
-                // Navigate to ResultsScreen with a default mood (e.g., 'Happy')
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => ResultsScreen(
-                      mood: 'Happy', // or any default mood you want
+                      mood: _detectedMood,
                       themeAssets: widget.themeAssets,
                       themeMode: widget.themeMode,
                     ),
@@ -91,34 +153,85 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               child: SizedBox(
                 width: 289,
                 height: 58,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(29),
-                  child: Image.asset(
-                    _seeSuggestionsPressed ? seeSuggestionsPressed : seeSuggestionsNormal,
-                    width: 289,
-                    height: 58,
-                    fit: BoxFit.cover,
+                child: Container(
+                  width: 289,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF5B80A4),
+                    borderRadius: BorderRadius.circular(29),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'See Suggestions?',
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 22,
+                        color: Color(0xFFFFFBF7),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-          // Big Microphone
+          // Big Microphone with Ellipse effect when pressed (aligned exactly below 'Tell us how you feel')
           Positioned(
-            left: 143.5,
-            top: 168,
+            left: 91.5 + 228/2 - (_micPressed ? 90 : 62),
+            top: 106 + 29 + 10,
             child: GestureDetector(
-              onTapDown: (_) => setState(() => _micPressed = true),
-              onTapUp: (_) => setState(() => _micPressed = false),
-              onTapCancel: () => setState(() => _micPressed = false),
-              child: SizedBox(
-                width: 124,
-                height: 124,
-                child: Image.asset(
-                  _micPressed ? micPressed : micDefault,
-                  width: 124,
-                  height: 124,
-                  fit: BoxFit.contain,
+              onTapDown: (_) {
+                setState(() => _micPressed = true);
+                _startListening();
+              },
+              onTapUp: (_) {
+                setState(() => _micPressed = false);
+                _stopListening();
+              },
+              onTapCancel: () {
+                setState(() => _micPressed = false);
+                _stopListening();
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                width: _micPressed ? 180 : 124,
+                height: _micPressed ? 180 : 124,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Show one ellipse as background in dark mode
+                    if (Theme.of(context).brightness == Brightness.dark)
+                      Image.asset(
+                        'assets/Ellipse 1.png',
+                        width: _micPressed ? 180 : 124,
+                        height: _micPressed ? 180 : 124,
+                        fit: BoxFit.contain,
+                        color: Color(0xFF727475),
+                        colorBlendMode: BlendMode.srcIn,
+                      ),
+                    // Mic logic: always use micpre.png when pressed
+                    if (_micPressed)
+                      Image.asset(
+                        micPressed,
+                        width: 124,
+                        height: 124,
+                        fit: BoxFit.contain,
+                      )
+                    else if (Theme.of(context).brightness == Brightness.dark)
+                      Image.asset(
+                        'assets/BigMic_darkmode.png',
+                        width: 124,
+                        height: 124,
+                        fit: BoxFit.contain,
+                      )
+                    else
+                      Image.asset(
+                        micDefault,
+                        width: 124,
+                        height: 124,
+                        fit: BoxFit.contain,
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -131,26 +244,32 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               width: 300,
               height: 44,
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F2FB),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF727475)
+                    : Theme.of(context).colorScheme.secondaryContainer,
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Row(
-                children: const [
-                  SizedBox(width: 27),
+                children: [
+                  const SizedBox(width: 27),
                   Text(
                     'Detected mood: ',
                     style: TextStyle(
                       fontFamily: 'Arial Rounded MT Bold',
                       fontSize: 20,
-                      color: Color(0xFF383737),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFFEFEFEF)
+                          : Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
                   Text(
-                    'Happy',
+                    _detectedMood,
                     style: TextStyle(
                       fontFamily: 'Arial Rounded MT Bold',
                       fontSize: 20,
-                      color: Color(0xFF615690),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF9076FE)
+                          : Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ],
@@ -164,35 +283,19 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
             child: SizedBox(
               width: 343,
               height: 150,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  'assets/bluetextbox.png',
-                  width: 343,
-                  height: 150,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-          // "Tell us how you feel"
-          Positioned(
-            left: 91.5,
-            top: 106,
-            child: SizedBox(
-              width: 228,
-              height: 29,
-              child: const Center(
-                child: Text(
-                  'Tell us how you feel',
-                  style: TextStyle(
-                    fontFamily: 'Arial Rounded MT Bold',
-                    fontWeight: FontWeight.w400,
-                    fontSize: 24,
-                    color: Color(0xFF383737),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      'assets/bluetextbox.png',
+                      width: 343,
+                      height: 150,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                ),
+                  // ...existing code for overlaying text or other widgets on the blue text box...
+                ],
               ),
             ),
           ),
@@ -204,14 +307,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               onTapDown: (_) => setState(() => _editPressed = true),
               onTapUp: (_) {
                 setState(() => _editPressed = false);
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => VoiceOverlayEditScreen(
-                      themeAssets: widget.themeAssets,
-                      themeMode: widget.themeMode,
-                    ),
-                  ),
-                );
+                _editText();
               },
               onTapCancel: () => setState(() => _editPressed = false),
               child: SizedBox(
@@ -226,7 +322,6 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               ),
             ),
           ),
-          // ...existing code...
           // Moosik logo (small)
           Positioned(
             left: 145,
@@ -235,7 +330,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               width: 122,
               height: 49,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(

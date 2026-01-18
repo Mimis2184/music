@@ -56,12 +56,8 @@ class _ActionButtonState extends State<ActionButton> with SingleTickerProviderSt
     final bool effectivePressed = widget.isPressed || _isPressedLocal;
     final double scale = effectivePressed ? widget.pressedScale : 1.0;
 
-    Color borderColor = (widget.themeMode == AppThemeMode.dark)
-        ? const Color(0xFF727475)
-        : const Color(0xFFD3CECE);
-    Color textColor = (widget.themeMode == AppThemeMode.dark)
-        ? const Color(0xFFDBFBFF)
-        : const Color(0xFF383737);
+    Color borderColor = Theme.of(context).dividerColor;
+    Color textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -94,8 +90,8 @@ class _ActionButtonState extends State<ActionButton> with SingleTickerProviderSt
                   width: 1.5,
                 ),
                 color: effectivePressed
-                    ? (widget.pressedColor ?? const Color(0xFFF5F5F5))
-                    : Colors.transparent,
+                  ? (widget.pressedColor ?? Theme.of(context).colorScheme.surface)
+                  : Colors.transparent,
               ),
               child: Center(
                 child: effectivePressed ? widget.iconPressed : widget.iconDefault,

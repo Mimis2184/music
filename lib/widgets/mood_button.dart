@@ -32,17 +32,15 @@ class MoodButton extends StatelessWidget {
     Color? bgColor;
     if (themeMode != null && themeAssets != null) {
       if (themeMode == AppThemeMode.light) {
-        bgColor = isSelected ? const Color(0xFFCBB1E5) : const Color(0xFFDBFBFF);
+        bgColor = isSelected ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.secondaryContainer;
       } else {
-        bgColor = isSelected ? const Color(0xFFB1BE86) : const Color(0xFF5B7174);
+        bgColor = isSelected ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.secondaryContainer;
       }
     } else {
-      bgColor = isSelected ? const Color(0xFFCBB1E5) : const Color(0xFFDBFBFF);
+      bgColor = isSelected ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.secondaryContainer;
     }
 
-    Color textColor = (themeMode == AppThemeMode.dark)
-        ? const Color(0xFFDBFBFF)
-        : const Color(0xFF383737);
+    Color textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
 
     return GestureDetector(
       onTap: onTap,

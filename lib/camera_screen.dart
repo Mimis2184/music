@@ -1,7 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:music/results_screen.dart';
 import 'main.dart';
+import 'package:camera/camera.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+// import 'package:google_mlkit_commons/google_mlkit_commons.dart';
+import 'package:flutter/foundation.dart';
 
 
 // Figma assets for camera screen prototype
@@ -27,9 +30,22 @@ class _CameraScreenState extends State<CameraScreen> {
   bool isAnalyzing = true;
   bool isSeeSuggestionsPressed = false;
 
+  CameraController? _cameraController;
+  List<CameraDescription>? _cameras;
+  bool _isCameraInitialized = false;
+  FaceDetector? _faceDetector;
+  bool _faceFound = false;
+
   @override
   void initState() {
     super.initState();
+    _initCamera();
+    _faceDetector = FaceDetector(
+      options: FaceDetectorOptions(
+        enableContours: false,
+        enableLandmarks: false,
+      ),
+    );
     // Simulate analyzing
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
@@ -40,6 +56,23 @@ class _CameraScreenState extends State<CameraScreen> {
         });
       }
     });
+  }
+
+  Future<void> _initCamera() async {
+    _cameras = await availableCameras();
+    if (_cameras != null && _cameras!.isNotEmpty) {
+      _cameraController = CameraController(_cameras![0], ResolutionPreset.medium, enableAudio: false);
+      await _cameraController!.initialize();
+      setState(() {
+        _isCameraInitialized = true;
+      });
+      // Start streaming images to face detector
+      _cameraController!.startImageStream((image) {
+        if (mounted) {
+          _processCameraImage(image);
+        }
+      });
+    }
   }
 
   void _handleBack() {
@@ -67,11 +100,44 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
+  void _processCameraImage(CameraImage image) async {
+    final WriteBuffer allBytes = WriteBuffer();
+    for (final Plane plane in image.planes) {
+      allBytes.putUint8List(plane.bytes);
+    }
+    final bytes = allBytes.done().buffer.asUint8List();
+    final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
+    final camera = _cameras![0];
+    final imageRotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation0deg;
+    final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw) ?? InputImageFormat.nv21;
+    final metadata = InputImageMetadata(
+      size: imageSize,
+      rotation: imageRotation,
+      format: inputImageFormat,
+      bytesPerRow: image.planes[0].bytesPerRow,
+    );
+    final inputImage = InputImage.fromBytes(
+      bytes: bytes,
+      metadata: metadata,
+    );
+    final faces = await _faceDetector!.processImage(inputImage);
+    setState(() {
+      _faceFound = faces.isNotEmpty;
+    });
+  }
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    _faceDetector?.close();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFBF7),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           // Back arrow button (same as voice overlay)
@@ -116,11 +182,11 @@ class _CameraScreenState extends State<CameraScreen> {
               height: 49,
               child: Text(
                 'moosik',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Nunito',
                   fontWeight: FontWeight.w800,
                   fontSize: 36,
-                  color: Color(0xFF383737),
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
                 textAlign: TextAlign.left,
                 maxLines: 1,
@@ -137,11 +203,11 @@ class _CameraScreenState extends State<CameraScreen> {
               height: 26,
               child: Text(
                 'Analyzing your expression...',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Arial Rounded MT Bold',
                   fontWeight: FontWeight.w400,
                   fontSize: 24,
-                  color: Color(0xFF383737),
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
                 textAlign: TextAlign.left,
                 maxLines: 1,
@@ -149,7 +215,7 @@ class _CameraScreenState extends State<CameraScreen> {
               ),
             ),
           ),
-          // Camera window (centered)
+          // Camera window (centered, with camera preview and face detection overlay)
           Positioned(
             left: 61,
             top: 151,
@@ -157,35 +223,58 @@ class _CameraScreenState extends State<CameraScreen> {
               width: 289,
               height: 310,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFFBF7),
+                color: Theme.of(context).scaffoldBackgroundColor,
                 border: Border.all(
-                  color: const Color(0xFF383737),
+                  color: Theme.of(context).dividerColor,
                   width: 2,
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      isAnalyzing ? Icons.videocam : Icons.check_circle,
-                      size: 64,
-                      color: isAnalyzing ? const Color(0xFFD3CECE) : const Color(0xFF4CAF50),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      isAnalyzing ? 'Analyzing...' : 'Ready!',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: Color(0xFF383737),
-                        fontFamily: 'Arial Rounded MT Bold',
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: _isCameraInitialized && _cameraController != null
+                    ? Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CameraPreview(_cameraController!),
+                          if (_faceFound)
+                            Container(
+                              color: Colors.black.withOpacity(0.2),
+                              alignment: Alignment.center,
+                              child: Text(
+                                'Face detected!',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                        ],
+                      )
+                    : Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.videocam,
+                              size: 64,
+                              color: Theme.of(context).disabledColor,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Initializing camera...',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                                fontFamily: 'Arial Rounded MT Bold',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
               ),
             ),
           ),
@@ -198,20 +287,20 @@ class _CameraScreenState extends State<CameraScreen> {
                 width: 300,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F2FB),
+                  color: Theme.of(context).colorScheme.secondaryContainer,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 27),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 27),
                       child: Text(
                         'Detected mood:',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w400,
-                          color: Color(0xFF383737),
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                           fontFamily: 'Arial Rounded MT Bold',
                         ),
                         maxLines: 1,
@@ -222,10 +311,10 @@ class _CameraScreenState extends State<CameraScreen> {
                       padding: const EdgeInsets.only(right: 27),
                       child: Text(
                         detectedMood!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w400,
-                          color: Color(0xFF615690),
+                          color: Theme.of(context).colorScheme.primary,
                           fontFamily: 'Arial Rounded MT Bold',
                         ),
                         maxLines: 1,
@@ -236,7 +325,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 ),
               ),
             ),
-          // See Suggestions button
+          // See Suggestions button (Figma style)
           Positioned(
             left: 61,
             top: 579,
@@ -247,16 +336,24 @@ class _CameraScreenState extends State<CameraScreen> {
                 _handleSeeSuggestions();
               },
               onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
-              child: SizedBox(
-                width: 289,
-                height: 58,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(29),
-                  child: Image.asset(
-                    isSeeSuggestionsPressed ? seeSuggestionsPressed : seeSuggestionsNormal,
-                    width: 289,
-                    height: 58,
-                    fit: BoxFit.cover,
+              child: Container(
+                child: Container(
+                  width: 289,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF5B80A4),
+                    borderRadius: BorderRadius.circular(29),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'See Suggestions?',
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 22,
+                        color: Color(0xFFFFFBF7),
+                      ),
+                    ),
                   ),
                 ),
               ),

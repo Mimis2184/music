@@ -2,17 +2,67 @@ import 'package:flutter/material.dart';
 
 import 'main.dart';
 
-class VoiceOverlayEditScreen extends StatelessWidget {
+class VoiceOverlayEditScreen extends StatefulWidget {
 	final Map<String, String> themeAssets;
 	final AppThemeMode themeMode;
-	const VoiceOverlayEditScreen({super.key, required this.themeAssets, required this.themeMode});
+	final String initialText;
+	const VoiceOverlayEditScreen({super.key, required this.themeAssets, required this.themeMode, required this.initialText});
 
+	@override
+	State<VoiceOverlayEditScreen> createState() => _VoiceOverlayEditScreenState();
+}
+
+class _VoiceOverlayEditScreenState extends State<VoiceOverlayEditScreen> {
 	static const String textBoxAsset = "assets/bluetextbox.png";
+	final TextEditingController _controller = TextEditingController();
+	String _mirroredText = '';
+	String _detectedMood = 'Happy';
+
+	@override
+	void initState() {
+		super.initState();
+		_controller.text = widget.initialText;
+		_mirroredText = widget.initialText;
+		_detectedMood = _analyzeEmotion(widget.initialText);
+		_controller.addListener(_onTextChanged);
+	}
+
+	@override
+	void dispose() {
+		_controller.dispose();
+		super.dispose();
+	}
+
+	void _onTextChanged() {
+		setState(() {
+			_mirroredText = _controller.text;
+			_detectedMood = _analyzeEmotion(_mirroredText);
+		});
+	}
+
+	String _analyzeEmotion(String text) {
+		final lower = text.toLowerCase();
+		if (lower.contains('happy') || lower.contains('joy') || lower.contains('excited')) return 'Happy';
+		if (lower.contains('sad') || lower.contains('down') || lower.contains('cry')) return 'Sad';
+		if (lower.contains('angry') || lower.contains('mad') || lower.contains('furious')) return 'Angry';
+		if (lower.contains('calm') || lower.contains('relaxed')) return 'Calm';
+		if (lower.contains('anxious') || lower.contains('nervous')) return 'Anxious';
+		if (lower.contains('romantic') || lower.contains('love')) return 'Romantic';
+		return 'Neutral';
+	}
+
+	void _onOkPressed() {
+		Navigator.of(context).pop({'text': _mirroredText, 'mood': _detectedMood});
+	}
+
+	void _onCancelPressed() {
+		Navigator.of(context).pop();
+	}
 
 	@override
 	Widget build(BuildContext context) {
 		return Scaffold(
-			backgroundColor: const Color(0xFFFFFBF7),
+			backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 			body: Stack(
 				children: [
 					// Camera window (bordered box)
@@ -23,59 +73,104 @@ class VoiceOverlayEditScreen extends StatelessWidget {
 							width: 289,
 							height: 310,
 							decoration: BoxDecoration(
-								color: const Color(0xFFFFFBF7),
-								border: Border.all(color: const Color(0xFF383737), width: 2),
+								color: Theme.of(context).scaffoldBackgroundColor,
+								border: Border.all(color: Theme.of(context).dividerColor, width: 2),
 								borderRadius: BorderRadius.circular(16),
 							),
 						),
 					),
 					// Tell us how you feel
 					Positioned(
-							left: 91.5,
-							top: 106,
-							child: SizedBox(
-									width: 228,
-									height: 29,
-									child: const Center(
-											child: Text(
-													'Tell us how you feel',
-													style: TextStyle(
-															fontFamily: 'Arial Rounded MT Bold',
-															fontWeight: FontWeight.w400,
-															fontSize: 24,
-															color: Color(0xFF383737),
-													),
-													textAlign: TextAlign.center,
-											),
+						left: 91.5,
+						top: 106,
+						child: SizedBox(
+							width: 228,
+							height: 29,
+							child: Center(
+								child: Text(
+									'Tell us how you feel',
+									style: TextStyle(
+										fontFamily: 'Arial Rounded MT Bold',
+										fontWeight: FontWeight.w400,
+										fontSize: 24,
+										color: Theme.of(context).textTheme.bodyLarge?.color,
 									),
+									textAlign: TextAlign.center,
+								),
 							),
+						),
 					),
-					// Text box (background image)
+					// Editable grey TextField (autofocus)
 					Positioned(
-							left: 34,
-							top: 176,
-							child: SizedBox(
-									width: 343,
-									height: 150,
-									child: ClipRRect(
-											borderRadius: BorderRadius.circular(16),
-											child: Image.asset(textBoxAsset, fit: BoxFit.cover),
-									),
+						left: 57,
+						top: 176,
+						child: Container(
+							width: 289,
+							height: 44,
+							decoration: BoxDecoration(
+								color: Theme.of(context).inputDecorationTheme.fillColor ?? Theme.of(context).colorScheme.surface,
+								borderRadius: BorderRadius.circular(12),
 							),
+							child: TextField(
+								controller: _controller,
+								autofocus: true,
+								maxLines: 2,
+								style: TextStyle(fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
+								decoration: const InputDecoration(
+									border: InputBorder.none,
+									contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+									hintText: 'Type here...',
+								),
+							),
+						),
 					),
-										// OK button (image asset, changes on press)
-										Positioned(
-										  left: 290,
-										  top: 305,
-										  child: _OkButton(onPressed: () => Navigator.of(context).pop()),
+					// Blue box (mirrors text live)
+					Positioned(
+						left: 34,
+						top: 230,
+						child: SizedBox(
+							width: 343,
+							height: 150,
+							child: Stack(
+								children: [
+									ClipRRect(
+										borderRadius: BorderRadius.circular(16),
+										child: Image.asset(textBoxAsset, fit: BoxFit.cover),
+									),
+									Padding(
+										padding: const EdgeInsets.all(20),
+										child: Align(
+											alignment: Alignment.topLeft,
+											child: Text(
+												_mirroredText,
+												style: TextStyle(fontSize: 18, color: Theme.of(context).textTheme.bodyLarge?.color),
+												maxLines: 5,
+												overflow: TextOverflow.ellipsis,
+											),
 										),
-										// Cancel button (image asset, changes on press)
-										Positioned(
-										  left: 331,
-										  top: 305,
-										  child: _CancelButton(onPressed: () => Navigator.of(context).pop()),
-										),
-
+									),
+								],
+							),
+						),
+					),
+					// Detected mood display (optional, for debugging)
+					// Positioned(
+					//   left: 57,
+					//   top: 390,
+					//   child: Text('Detected mood: $_detectedMood'),
+					// ),
+					// OK button
+					Positioned(
+						left: 290,
+						top: 305,
+						child: _OkButton(onPressed: _onOkPressed),
+					),
+					// Cancel button
+					Positioned(
+						left: 331,
+						top: 305,
+						child: _CancelButton(onPressed: _onCancelPressed),
+					),
 					// Moosik logo (small, text only)
 					Positioned(
 						left: 145,
@@ -90,20 +185,10 @@ class VoiceOverlayEditScreen extends StatelessWidget {
 										fontFamily: 'Nunito',
 										fontWeight: FontWeight.w800,
 										fontSize: 36,
-										color: Color(0xFF383737),
+										color: Theme.of(context).textTheme.bodyLarge?.color,
 									),
 								),
 							),
-						),
-					),
-					// System keyboard placeholder (gray box)
-					Positioned(
-						left: -1,
-						top: 396,
-						child: Container(
-							width: 411,
-							height: 335,
-							color: const Color(0xFFD9D9D9),
 						),
 					),
 				],

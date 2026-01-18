@@ -1,10 +1,12 @@
+import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:music/results_screen.dart';
 import 'main.dart';
-import 'package:camera/camera.dart';
+
+import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-// import 'package:google_mlkit_commons/google_mlkit_commons.dart';
-import 'package:flutter/foundation.dart';
 
 // Figma assets for camera screen prototype
 const String arrowBackImg =
@@ -27,6 +29,7 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> {
   bool _arrowPressed = false;
+
   static const allowedMoods = [
     'Happy',
     'Sad',
@@ -35,61 +38,123 @@ class _CameraScreenState extends State<CameraScreen> {
     'Romantic',
     'Angry',
   ];
+
   String? detectedMood;
-  bool isAnalyzing = true;
+  bool isAnalyzing = false;
   bool isSeeSuggestionsPressed = false;
 
-  CameraController? _cameraController;
-  List<CameraDescription>? _cameras;
-  bool _isCameraInitialized = false;
+  final ImagePicker _picker = ImagePicker();
+
+  Uint8List? _photoBytes; // για εμφάνιση (δουλεύει και σε web)
+  String? _photoPath; // για ML Kit (Android/iOS)
   FaceDetector? _faceDetector;
   bool _faceFound = false;
 
   @override
   void initState() {
     super.initState();
-    _initCamera();
+
+    // Enable classification ώστε να έχουμε smilingProbability
     _faceDetector = FaceDetector(
       options: FaceDetectorOptions(
+        enableClassification: true,
         enableContours: false,
         enableLandmarks: false,
       ),
     );
-    // Simulate analyzing
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        final idx = DateTime.now().second % allowedMoods.length;
-        setState(() {
-          detectedMood = allowedMoods[idx];
-          isAnalyzing = false;
-        });
-      }
-    });
-  }
 
-  Future<void> _initCamera() async {
-    _cameras = await availableCameras();
-    if (_cameras != null && _cameras!.isNotEmpty) {
-      _cameraController = CameraController(
-        _cameras![0],
-        ResolutionPreset.medium,
-        enableAudio: false,
-      );
-      await _cameraController!.initialize();
-      setState(() {
-        _isCameraInitialized = true;
-      });
-      // Start streaming images to face detector
-      _cameraController!.startImageStream((image) {
-        if (mounted) {
-          _processCameraImage(image);
-        }
-      });
-    }
+    // Ανοίγει native camera μόλις μπει στο screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _takePhoto();
+    });
   }
 
   void _handleBack() {
     Navigator.of(context).pop();
+  }
+
+  Future<void> _takePhoto() async {
+    try {
+      final XFile? file = await _picker.pickImage(
+        source: ImageSource.camera,
+        preferredCameraDevice: CameraDevice.front,
+        imageQuality: 95,
+      );
+
+      // Αν ακυρώσει ο χρήστης, απλά μένουμε στο screen (ή αν θες μπορείς να κάνεις pop)
+      if (file == null) return;
+
+      final bytes = await file.readAsBytes();
+
+      if (!mounted) return;
+      setState(() {
+        _photoBytes = bytes;
+        _photoPath = file.path;
+        detectedMood = null;
+        _faceFound = false;
+        isAnalyzing = true;
+      });
+
+      await _analyzePickedPhoto();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Camera error: $e')),
+      );
+    }
+  }
+
+  Future<void> _analyzePickedPhoto() async {
+    // ML Kit face detection δεν δουλεύει πραγματικά στο web με fromFilePath.
+    if (kIsWeb) {
+      if (!mounted) return;
+      setState(() {
+        detectedMood = 'Calm';
+        isAnalyzing = false;
+        _faceFound = true;
+      });
+      return;
+    }
+
+    final path = _photoPath;
+    if (path == null) {
+      if (!mounted) return;
+      setState(() => isAnalyzing = false);
+      return;
+    }
+
+    final inputImage = InputImage.fromFilePath(path);
+    final faces = await _faceDetector!.processImage(inputImage);
+
+    if (!mounted) return;
+
+    if (faces.isEmpty) {
+      setState(() {
+        _faceFound = false;
+        // Αν δεν βρει πρόσωπο, δίνουμε ένα mood που υπάρχει στη λίστα ώστε να συνεχίσει το flow
+        detectedMood = 'Anxious';
+        isAnalyzing = false;
+      });
+      return;
+    }
+
+    final mood = _inferMoodFromFace(faces.first);
+
+    setState(() {
+      _faceFound = true;
+      detectedMood = mood;
+      isAnalyzing = false;
+    });
+  }
+
+  String _inferMoodFromFace(Face face) {
+    final s = face.smilingProbability;
+    if (s == null) return 'Calm';
+
+    // Απλός κανόνας (ρεαλιστικά το ML Kit face_detection δεν “βγάζει” Angry/Romantic κλπ)
+    if (s >= 0.75) return 'Happy';
+    if (s <= 0.25) return 'Sad';
+    return 'Calm';
   }
 
   void _handleSeeSuggestions() {
@@ -113,39 +178,8 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
-  void _processCameraImage(CameraImage image) async {
-    final WriteBuffer allBytes = WriteBuffer();
-    for (final Plane plane in image.planes) {
-      allBytes.putUint8List(plane.bytes);
-    }
-    final bytes = allBytes.done().buffer.asUint8List();
-    final Size imageSize = Size(
-      image.width.toDouble(),
-      image.height.toDouble(),
-    );
-    final camera = _cameras![0];
-    final imageRotation =
-        InputImageRotationValue.fromRawValue(camera.sensorOrientation) ??
-        InputImageRotation.rotation0deg;
-    final inputImageFormat =
-        InputImageFormatValue.fromRawValue(image.format.raw) ??
-        InputImageFormat.nv21;
-    final metadata = InputImageMetadata(
-      size: imageSize,
-      rotation: imageRotation,
-      format: inputImageFormat,
-      bytesPerRow: image.planes[0].bytesPerRow,
-    );
-    final inputImage = InputImage.fromBytes(bytes: bytes, metadata: metadata);
-    final faces = await _faceDetector!.processImage(inputImage);
-    setState(() {
-      _faceFound = faces.isNotEmpty;
-    });
-  }
-
   @override
   void dispose() {
-    _cameraController?.dispose();
     _faceDetector?.close();
     super.dispose();
   }
@@ -156,7 +190,7 @@ class _CameraScreenState extends State<CameraScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-          // Back arrow button (same as voice overlay)
+          // Back arrow
           Positioned(
             left: 25,
             top: 26,
@@ -191,7 +225,8 @@ class _CameraScreenState extends State<CameraScreen> {
               ),
             ),
           ),
-          // Small 'moosik' title (top center)
+
+          // Small 'moosik' title
           Positioned(
             left: 145,
             top: 21,
@@ -212,7 +247,8 @@ class _CameraScreenState extends State<CameraScreen> {
               ),
             ),
           ),
-          // Analyzing your expression text (large and readable, like prototype)
+
+          // Title
           Positioned(
             left: 34,
             top: 102,
@@ -233,71 +269,92 @@ class _CameraScreenState extends State<CameraScreen> {
               ),
             ),
           ),
-          // Camera window (centered, with camera preview and face detection overlay)
+
+          // Camera window -> τώρα δείχνει τη ΦΩΤΟ (tap για retake)
           Positioned(
             left: 61,
             top: 151,
-            child: Container(
-              width: 289,
-              height: 310,
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                border: Border.all(
-                  color: Theme.of(context).dividerColor,
-                  width: 2,
+            child: GestureDetector(
+              onTap: _takePhoto, // retake με tap στο πλαίσιο
+              child: Container(
+                width: 289,
+                height: 310,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor,
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: _isCameraInitialized && _cameraController != null
-                    ? Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          CameraPreview(_cameraController!),
-                          if (_faceFound)
-                            Container(
-                              color: Colors.black.withOpacity(0.2),
-                              alignment: Alignment.center,
-                              child: Text(
-                                'Face detected!',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: _photoBytes != null
+                      ? Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.memory(
+                              _photoBytes!,
+                              fit: BoxFit.cover,
+                            ),
+                            if (isAnalyzing)
+                              Container(
+                                color: Colors.black.withOpacity(0.25),
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  'Analyzing...',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
-                      )
-                    : Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.videocam,
-                              size: 64,
-                              color: Theme.of(context).disabledColor,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Initializing camera...',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge?.color,
-                                fontFamily: 'Arial Rounded MT Bold',
+                            if (!isAnalyzing && _faceFound)
+                              Container(
+                                color: Colors.black.withOpacity(0.10),
+                                alignment: Alignment.topCenter,
+                                padding: const EdgeInsets.only(top: 10),
+                                child: const Text(
+                                  'Face detected!',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
                           ],
+                        )
+                      : Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.photo_camera,
+                                size: 64,
+                                color: Theme.of(context).disabledColor,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Tap to take a photo',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color:
+                                      Theme.of(context).textTheme.bodyLarge?.color,
+                                  fontFamily: 'Arial Rounded MT Bold',
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                ),
               ),
             ),
           ),
+
           // Detected mood display
           if (detectedMood != null &&
               !isAnalyzing &&
@@ -348,7 +405,7 @@ class _CameraScreenState extends State<CameraScreen> {
               ),
             ),
 
-          // See Suggestions button (same as HomeScreen)
+          // See Suggestions button
           Positioned(
             left: 61,
             top: 579,
@@ -379,12 +436,12 @@ class _CameraScreenState extends State<CameraScreen> {
                             : null,
                         colorBlendMode:
                             Theme.of(context).brightness == Brightness.dark
-                            ? BlendMode.srcATop
-                            : null,
+                                ? BlendMode.srcATop
+                                : null,
                       ),
                     ),
                     if (Theme.of(context).brightness == Brightness.dark)
-                      Positioned.fill(
+                      const Positioned.fill(
                         child: Center(
                           child: Text(
                             'See Suggestions ?',
@@ -392,7 +449,7 @@ class _CameraScreenState extends State<CameraScreen> {
                               fontFamily: 'Arial Rounded MT Bold',
                               fontWeight: FontWeight.w600,
                               fontSize: 20,
-                              color: const Color(0xFF312F2D),
+                              color: Color(0xFF312F2D),
                             ),
                           ),
                         ),

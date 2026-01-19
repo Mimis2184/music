@@ -62,8 +62,9 @@ class _VoiceOverlayEditScreenState extends State<VoiceOverlayEditScreen> {
       return 'Angry';
     }
     if (lower.contains('calm') || lower.contains('relaxed')) return 'Calm';
-    if (lower.contains('anxious') || lower.contains('nervous'))
+    if (lower.contains('anxious') || lower.contains('nervous')) {
       return 'Anxious';
+    }
     if (lower.contains('romantic') || lower.contains('love')) return 'Romantic';
     return 'Neutral';
   }

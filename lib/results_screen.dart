@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:provider/provider.dart';
+
 import 'main.dart';
 import 'home_screen.dart';
+import 'app_state.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // Open in Spotify button assets (background only, no text)
@@ -30,6 +31,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
   static const String shareDefault = 'assets/sharebutton_default.png';
   static const String sharePressed = 'assets/sharebutton_pressed.png';
 
+  bool _isTryMoodPressed = false;
+
   void _handleOpenInSpotify() async {
     String url = '';
     if (widget.mood == 'Happy') {
@@ -51,7 +54,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
       url =
           'https://open.spotify.com/playlist/1OvEwx07iqXhhDVB4AlVmo?si=d483e9244c2b46b7';
     }
+
     if (url.isEmpty) return;
+
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -60,9 +65,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
     }
   }
 
-  void _handleTryAnotherMood(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('lastMood');
+  Future<void> _handleTryAnotherMood(BuildContext context) async {
+    // ✅ Persist + shared state through AppState (Provider)
+    await context.read<AppState>().setMood(null);
+
+    if (!mounted) return;
+
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (context) => HomeScreen(
@@ -95,6 +103,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
       url =
           'https://open.spotify.com/playlist/1OvEwx07iqXhhDVB4AlVmo?si=d483e9244c2b46b7';
     }
+
     if (url.isNotEmpty) {
       Share.share(url, subject: 'Moosik playlist');
     }
@@ -102,12 +111,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bool isTryMoodPressed = false;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-          // Share button (image asset, changes on press)
+          // Share button
           Positioned(
             left: 356,
             top: 33,
@@ -123,12 +131,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
             width: 130,
             height: 23,
             child: GestureDetector(
-              onTapDown: (_) => setState(() => isTryMoodPressed = true),
+              onTapDown: (_) => setState(() => _isTryMoodPressed = true),
               onTapUp: (_) {
-                setState(() => isTryMoodPressed = false);
+                setState(() => _isTryMoodPressed = false);
                 _handleTryAnotherMood(context);
               },
-              onTapCancel: () => setState(() => isTryMoodPressed = false),
+              onTapCancel: () => setState(() => _isTryMoodPressed = false),
               child: Container(
                 width: 130,
                 height: 23,
@@ -138,7 +146,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
-                    color: isTryMoodPressed
+                    color: _isTryMoodPressed
                         ? Theme.of(context).disabledColor
                         : Theme.of(context).textTheme.bodyLarge?.color,
                     fontFamily: 'Arial',
@@ -150,7 +158,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
             ),
           ),
 
-          // Header and mood name (Figma style)
+          // Header and mood name
           Positioned(
             left: 55.5,
             top: 63,
@@ -469,7 +477,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
             ),
           ],
 
-          // Open in Spotify button (image asset, changes on press)
+          // Open in Spotify button
           Positioned(
             left: 73.5,
             top: 583,
@@ -483,7 +491,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 }
 
-// Custom Share Button widget (must be outside the class)
+// Custom Share Button widget
 class _ShareButton extends StatefulWidget {
   final VoidCallback onPressed;
   const _ShareButton({required this.onPressed});
@@ -518,7 +526,7 @@ class _ShareButtonState extends State<_ShareButton> {
   }
 }
 
-// Custom Spotify Button widget (must be outside the class)
+// Custom Spotify Button widget
 class _SpotifyButton extends StatefulWidget {
   final VoidCallback onPressed;
   const _SpotifyButton({required this.onPressed});
@@ -541,7 +549,6 @@ class _SpotifyButtonState extends State<_SpotifyButton> {
       onTapCancel: () => setState(() => _pressed = false),
       child: Stack(
         children: [
-          // Always render the SAME background asset
           ClipRRect(
             borderRadius: BorderRadius.circular(26),
             child: Image.asset(
@@ -549,17 +556,14 @@ class _SpotifyButtonState extends State<_SpotifyButton> {
               width: 264,
               height: 52,
               fit: BoxFit.cover,
-              // Light unchanged; dark tinted
               color: isLight ? null : Theme.of(context).primaryColor,
               colorBlendMode: isLight ? null : BlendMode.srcATop,
             ),
           ),
-
-          // Text layer (transparent in light, visible in dark)
           Positioned.fill(
             child: Center(
               child: Text(
-                'Open in Spotify ->', // ✅ changed from "?" to "->"
+                'Open in Spotify ->',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'Inter',
@@ -596,7 +600,6 @@ class _FigmaSongCard extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Album art placeholder
           Positioned(
             left: 15,
             top: 13,
@@ -609,7 +612,6 @@ class _FigmaSongCard extends StatelessWidget {
               ),
             ),
           ),
-          // Song name
           Positioned(
             left: 100,
             top: 13,
@@ -627,7 +629,6 @@ class _FigmaSongCard extends StatelessWidget {
               ),
             ),
           ),
-          // Artist name
           Positioned(
             left: 100,
             top: 40,

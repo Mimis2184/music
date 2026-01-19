@@ -1,10 +1,12 @@
 // voice_overlay_screen.dart
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:provider/provider.dart';
 
 import 'results_screen.dart';
 import 'voice_overlay_edit_screen.dart';
 import 'main.dart';
+import 'app_state.dart';
 
 class VoiceOverlayScreen extends StatefulWidget {
   final Map<String, String> themeAssets;
@@ -39,6 +41,19 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
     super.initState();
     _speech = stt.SpeechToText();
     _initSpeech();
+
+    // ✅ Restore last voice text/mood from AppState (persisted)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = context.read<AppState>();
+
+      if (state.lastVoiceText.trim().isNotEmpty) {
+        setState(() {
+          _transcribedText = state.lastVoiceText;
+          _detectedMood = state.lastDetectedMood;
+        });
+      }
+    });
   }
 
   Future<void> _initSpeech() async {
@@ -52,14 +67,12 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
         if (mounted) setState(() => _isListening = false);
       },
     );
-    if (mounted) {
-      setState(() {
-        _speechAvailable = available;
-      });
-    }
+
+    if (!mounted) return;
+    setState(() => _speechAvailable = available);
   }
 
-  void _startListening() async {
+  Future<void> _startListening() async {
     if (!_speechAvailable) {
       await _initSpeech();
     }
@@ -72,45 +85,57 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
       _detectedMood = '';
     });
 
+    // ✅ persist reset (correct call: named params)
+    await context.read<AppState>().setVoiceResult(text: '', mood: '');
+
     _speech.listen(
       localeId: 'en_US',
       partialResults: true,
       listenMode: stt.ListenMode.dictation,
       onResult: (result) {
         final text = result.recognizedWords;
+        final mood = _analyzeEmotion(text);
+
+        if (!mounted) return;
         setState(() {
           _transcribedText = text;
-          _detectedMood = _analyzeEmotion(text);
+          _detectedMood = mood;
         });
+
+        // ✅ persist update (named params)
+        // (δεν χρειάζεται await εδώ)
+        context.read<AppState>().setVoiceResult(text: text, mood: mood);
       },
     );
   }
 
-  void _stopListening() async {
+  Future<void> _stopListening() async {
     await _speech.stop();
-    if (mounted) {
-      setState(() => _isListening = false);
-    }
+    if (!mounted) return;
+    setState(() => _isListening = false);
   }
 
   String _analyzeEmotion(String text) {
-    // Simple keyword-based emotion detection (English keywords)
     final lower = text.toLowerCase();
     if (lower.contains('happy') ||
         lower.contains('joy') ||
-        lower.contains('excited'))
+        lower.contains('excited')) {
       return 'Happy';
+    }
     if (lower.contains('sad') ||
         lower.contains('down') ||
-        lower.contains('cry'))
+        lower.contains('cry')) {
       return 'Sad';
+    }
     if (lower.contains('angry') ||
         lower.contains('mad') ||
-        lower.contains('furious'))
+        lower.contains('furious')) {
       return 'Angry';
+    }
     if (lower.contains('calm') || lower.contains('relaxed')) return 'Calm';
-    if (lower.contains('anxious') || lower.contains('nervous'))
+    if (lower.contains('anxious') || lower.contains('nervous')) {
       return 'Anxious';
+    }
     if (lower.contains('romantic') || lower.contains('love')) return 'Romantic';
     return 'Neutral';
   }
@@ -130,12 +155,21 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
       final newText = (result['text'] ?? '') as String;
       final newMood = (result['mood'] ?? '') as String;
 
+      final finalMood = newText.trim().isEmpty
+          ? ''
+          : (newMood.isNotEmpty ? newMood : _analyzeEmotion(newText));
+
+      if (!mounted) return;
       setState(() {
         _transcribedText = newText;
-        _detectedMood = newText.trim().isEmpty
-            ? ''
-            : (newMood.isNotEmpty ? newMood : _analyzeEmotion(newText));
+        _detectedMood = finalMood;
       });
+
+      // ✅ persist edited result
+      await context.read<AppState>().setVoiceResult(
+        text: newText,
+        mood: finalMood,
+      );
     }
   }
 
@@ -147,7 +181,6 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Assets
     final String arrowDefault = 'assets/arrow_default.png';
     final String arrowPressed = 'assets/Property 1=ArrowBackPressed.png';
 
@@ -177,7 +210,6 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  // Keep layout same; only color changes.
                   color: isDark
                       ? Colors.black.withOpacity(0.35)
                       : Colors.white.withOpacity(0.8),
@@ -200,7 +232,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
             ),
           ),
 
-          // 'moosik' (use the same widget tree in both modes)
+          // 'moosik'
           Positioned(
             left: 145,
             top: 21,
@@ -245,7 +277,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
             ),
           ),
 
-          // See Suggestions button (disabled until we have text)
+          // See Suggestions button
           Positioned(
             left: 61,
             top: 576,
@@ -284,14 +316,12 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                             width: 289,
                             height: 58,
                             fit: BoxFit.cover,
-                            // Keep light mode intact; tint only in dark mode.
                             color: isDark
                                 ? Theme.of(context).primaryColor
                                 : null,
                             colorBlendMode: isDark ? BlendMode.srcATop : null,
                           ),
                         ),
-                        // Keep same tree: always present, but invisible in light mode.
                         Positioned.fill(
                           child: Center(
                             child: Text(
@@ -315,7 +345,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
             ),
           ),
 
-          // Big Microphone: listens while pressed
+          // Big Microphone
           ...(() {
             const double defaultBoxW = 124.0;
             const double defaultBoxH = 124.0;
@@ -362,7 +392,6 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        // Keep the same element in the tree; only show/tint in dark mode.
                         if (isDark)
                           Image.asset(
                             'assets/Ellipse 1.png',
@@ -401,7 +430,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
             ];
           })(),
 
-          // Text box (display only - no typing here)
+          // Text box
           Positioned(
             left: 34,
             top: 325,
@@ -410,7 +439,6 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               height: 150,
               child: Container(
                 decoration: BoxDecoration(
-                  // Light mode is the source of truth; dark mode only changes color.
                   color: isDark
                       ? Theme.of(context).cardColor
                       : const Color(0xFFE8F2FB),
@@ -442,7 +470,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
             ),
           ),
 
-          // Detected Mood box (only show after we have text)
+          // Detected Mood box
           if (_hasText)
             Positioned(
               left: 55.5,
@@ -451,7 +479,6 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                 width: 300,
                 height: 44,
                 decoration: BoxDecoration(
-                  // Keep layout identical; only color changes.
                   color: isDark
                       ? Theme.of(context).cardColor
                       : Theme.of(context).colorScheme.secondaryContainer,

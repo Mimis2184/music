@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
 import 'home_screen.dart';
 import 'results_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'app_state.dart';
 
 // Centralized color tokens from Figma
 class AppColors {
@@ -10,9 +11,7 @@ class AppColors {
   static const Color lightButtonColor1 = Color(0xFF5B80A4);
   static const Color lightButtonColor2 = Color(0xFFDBFBFF);
   static const Color lightSelectedMood = Color(0xFFCBB1E5);
-  static const Color lightBackground = Color(
-    0xFFFFFBF7,
-  ); // #FFFBF7 for light mode
+  static const Color lightBackground = Color(0xFFFFFBF7);
   static const Color lightDisabled = Color(0xFFD3CECE);
   static const Color lightIconAccent = Color(0xFF061B45);
   static const Color lightErrorAccent = Color(0xFFFC4E50);
@@ -25,9 +24,7 @@ class AppColors {
   static const Color darkButtonColor1 = Color(0xFF2D547A);
   static const Color darkButtonColor2 = Color(0xFF5B7174);
   static const Color darkSelectedMood = Color(0xFFB1BE86);
-  static const Color darkBackground = Color(
-    0xFF312F2D,
-  ); // #312F2D for dark mode
+  static const Color darkBackground = Color(0xFF312F2D);
   static const Color darkDisabled = Color(0xFFAEB7C4);
   static const Color darkIconAccent = Color(0xFF336BA1);
   static const Color darkErrorAccent = Color(0xFFA9191B);
@@ -38,7 +35,12 @@ class AppColors {
 }
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => AppState()..init(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 enum AppThemeMode { light, dark }
@@ -52,7 +54,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   // Map of color asset URLs for each mode
-  final Map<String, String> lightModeAssets = {
+  final Map<String, String> lightModeAssets = const {
     'buttonColor1':
         'https://www.figma.com/api/mcp/asset/86afdfa4-e237-4663-a16e-b541b735ed10',
     'buttonColor2':
@@ -72,7 +74,7 @@ class _MyAppState extends State<MyApp> {
     'background': '',
   };
 
-  final Map<String, String> darkModeAssets = {
+  final Map<String, String> darkModeAssets = const {
     'buttonColor1':
         'https://www.figma.com/api/mcp/asset/5d1bd959-4978-41e3-94bb-2633d8631212',
     'buttonColor2':
@@ -103,7 +105,6 @@ class _MyAppState extends State<MyApp> {
       bodyLarge: TextStyle(color: AppColors.lightTextColor),
       bodyMedium: TextStyle(color: AppColors.lightTextColor2),
     ),
-    // Add a colorScheme so widgets (cards/containers/textfields) can take consistent colors.
     colorScheme: const ColorScheme.light(
       primary: AppColors.lightButtonColor1,
       surface: AppColors.lightFillColor3,
@@ -131,30 +132,9 @@ class _MyAppState extends State<MyApp> {
     ),
   );
 
-  String? _lastMood;
-  bool _checkedPrefs = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _restoreLastMood();
-  }
-
-  Future<void> _restoreLastMood() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _lastMood = prefs.getString('lastMood');
-      _checkedPrefs = true;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (!_checkedPrefs) {
-      return const MaterialApp(
-        home: Scaffold(body: Center(child: CircularProgressIndicator())),
-      );
-    }
+    final appState = context.watch<AppState>();
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -163,18 +143,21 @@ class _MyAppState extends State<MyApp> {
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
 
-      // IMPORTANT:
-      // Compute "isDark" INSIDE the MaterialApp using a Builder, so it correctly updates
-      // on Android emulator when the system theme changes.
       home: Builder(
         builder: (context) {
+          if (!appState.initialized) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
           final isDark = Theme.of(context).brightness == Brightness.dark;
           final assets = isDark ? darkModeAssets : lightModeAssets;
           final themeMode = isDark ? AppThemeMode.dark : AppThemeMode.light;
 
-          return _lastMood != null
+          return appState.lastMood != null
               ? ResultsScreen(
-                  mood: _lastMood!,
+                  mood: appState.lastMood!,
                   themeAssets: assets,
                   themeMode: themeMode,
                 )

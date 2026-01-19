@@ -2,11 +2,12 @@ import 'camera_screen.dart';
 import 'package:music/voice_overlay_screen.dart';
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 import 'package:music/results_screen.dart';
 
 import 'main.dart';
+import 'app_state.dart';
 
 // Figma assets
 const String imgHappy =
@@ -60,21 +61,37 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isCameraPressed = false;
   bool isMicPressed = false;
 
+  @override
+  void initState() {
+    super.initState();
+
+    // Sync UI selection with persisted app state (if any)
+    // (This is safe because AppState is initialized before HomeScreen is shown.)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appState = context.read<AppState>();
+      if (!mounted) return;
+
+      if (appState.lastMood != null && selectedMood != appState.lastMood) {
+        setState(() => selectedMood = appState.lastMood);
+      }
+    });
+  }
+
   void _handleMoodSelection(String mood) {
     setState(() {
       selectedMood = selectedMood == mood ? null : mood;
     });
   }
 
-  Future<void> _persistMood(String mood) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('lastMood', mood);
-  }
-
   void _handleSeeSuggestions() async {
     setState(() => isSeeSuggestionsPressed = false);
+
     if (selectedMood != null) {
-      await _persistMood(selectedMood!);
+      // Persist + shared state through AppState (Provider)
+      await context.read<AppState>().setMood(selectedMood!);
+
+      if (!mounted) return;
+
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => ResultsScreen(
@@ -238,7 +255,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(28),
                           child: Center(
-                            // Slightly lower visual centering
                             child: Transform.translate(
                               offset: const Offset(0, 2),
                               child: Image.asset(
@@ -307,7 +323,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(28),
                           child: Center(
-                            // Slightly lower visual centering
                             child: Transform.translate(
                               offset: const Offset(0, 2),
                               child: Image.asset(
@@ -399,6 +414,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _moodButton(String label, String imgUrl, int index) {
     final isSelected = selectedMood == label;
+
     return GestureDetector(
       onTap: () => _handleMoodSelection(label),
       child: Container(

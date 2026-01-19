@@ -22,6 +22,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
   bool _editPressed = false;
 
   late stt.SpeechToText _speech;
+  final TextEditingController _textController = TextEditingController();
   String _transcribedText = '';
   String _detectedMood = 'Happy';
   bool _isListening = false;
@@ -30,6 +31,16 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
+    _textController.addListener(() {
+      final text = _textController.text;
+      // Keep _transcribedText in sync with what the user types.
+      _transcribedText = text;
+      // Detect emotion from the English text and update the UI.
+      final mood = _analyzeEmotion(text);
+      if (mood != _detectedMood) {
+        setState(() => _detectedMood = mood);
+      }
+    });
   }
 
   void _startListening() async {
@@ -38,9 +49,15 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
       setState(() => _isListening = true);
       _speech.listen(
         onResult: (result) {
+          final words = result.recognizedWords;
+          // Update both the controller (what user sees/edits) and our backing field.
+          _textController.text = words;
+          _textController.selection = TextSelection.fromPosition(
+            TextPosition(offset: _textController.text.length),
+          );
           setState(() {
-            _transcribedText = result.recognizedWords;
-            _detectedMood = _analyzeEmotion(_transcribedText);
+            _transcribedText = words;
+            _detectedMood = _analyzeEmotion(words);
           });
         },
       );
@@ -70,16 +87,36 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
         builder: (context) => VoiceOverlayEditScreen(
           themeAssets: widget.themeAssets,
           themeMode: widget.themeMode,
-          initialText: _transcribedText,
+          initialText: _textController.text,
         ),
       ),
     );
     if (result != null && result is Map) {
+      String text = result['text'] ?? '';
+      String mood = result['mood'] ?? _extractMoodFromText(text);
       setState(() {
-        _transcribedText = result['text'] ?? '';
-        _detectedMood = result['mood'] ?? 'Neutral';
+        _textController.text = text;
+        _textController.selection = TextSelection.fromPosition(TextPosition(offset: _textController.text.length));
+        _transcribedText = text;
+        _detectedMood = mood;
       });
     }
+  }
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  String _extractMoodFromText(String text) {
+    final lower = text.toLowerCase();
+    if (lower.contains('happy')) return 'Happy';
+    if (lower.contains('sad')) return 'Sad';
+    if (lower.contains('anxious')) return 'Anxious';
+    if (lower.contains('romantic')) return 'Romantic';
+    if (lower.contains('angry')) return 'Angry';
+    if (lower.contains('calm')) return 'Calm';
+    return 'Neutral';
   }
 
   @override
@@ -88,11 +125,10 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
       final String arrowDefault = 'assets/arrow_default.png';
       final String arrowPressed = 'assets/Property 1=ArrowBackPressed.png';
       // Use local assets for mic (always the same regardless of theme)
-      final String micDefault = 'assets/micdef.png';
-      final String micPressed = 'assets/micpre.png';
+      final String micDefault = 'assets/BigMIC_default.png';
+      final String micPressed = 'assets/BigMic_pressed_right.png';
       final String seeSuggestionsNormal = 'assets/Property 1=Default.png';
       final String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
-      final String imgTextBox = "https://www.figma.com/api/mcp/asset/cbbbe656-6609-4d84-9838-28860074c579";
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -171,25 +207,32 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
 
           // 'Tell us how you feel' text under moosik, matching moosik color
           Positioned(
-            left: 145,
-            top: 21 + 49 + 8, // 8px gap below logo/text
-            child: SizedBox(
-              width: 122,
-              height: 28,
-              child: Center(
-                child: Text(
-                  'Tell us how you feel',
-                  style: TextStyle(
-                    fontFamily: 'Arial Rounded MT Bold',
-                    fontWeight: FontWeight.w400,
-                    fontSize: 18,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ),
+  left: 0,
+  right: 0,
+  top: 21 + 49 + 8, // 8px gap below logo/text
+  child: Center(
+    child: Text(
+      'Tell us how you feel',
+      style: TextStyle(
+        fontFamily: 'Arial Rounded MT Bold',
+        fontWeight: FontWeight.w400,
+        fontSize: 18,
+        color: Theme.of(context).textTheme.bodyLarge?.color,
+      ),
+      textAlign: TextAlign.center,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      softWrap: false,
+    ),
+  ),
+),
+
+
+
+
+
+
+
           // See Suggestions button (light mode: revert to previous custom style)
           Positioned(
             left: 61,
@@ -248,32 +291,19 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
           ),
           // Big Microphone with Ellipse effect when pressed (centered, independent box/img sizes)
           ...(() {
-            // Default box and image sizes
-            const double defaultBoxW = 124.0;
-            const double defaultBoxH = 124.0;
-            const double defaultImgW = 124.0;
-            const double defaultImgH = 124.0;
-            // Pressed box and image sizes
-            const double pressedBoxW = 180.0;
-            const double pressedBoxH = 180.0;
-            const double pressedImgW = 140.0; // adjust as needed for your asset
-            const double pressedImgH = 140.0; // adjust as needed for your asset
-            // Center coordinates (from default position)
-            const double defaultLeft = 91.5 + 228/2 - defaultBoxW/2;
+            // Default and pressed sizes for the mic
+            const double defaultSize = 124.0;
+            const double pressedSize = 140.0;
+            // Center coordinates (from previous logic)
+            const double defaultLeft = 91.5 + 228/2 - defaultSize/2;
             const double defaultTop  = 106 + 29 + 10;
-            const double centerX = defaultLeft + defaultBoxW/2;
-            const double centerY = defaultTop  + defaultBoxH/2;
-            // Current box and image sizes
-            final double boxW = _micPressed ? pressedBoxW : defaultBoxW;
-            final double boxH = _micPressed ? pressedBoxH : defaultBoxH;
-            final double imgW = _micPressed ? pressedImgW : defaultImgW;
-            final double imgH = _micPressed ? pressedImgH : defaultImgH;
-            // Optional: fine-tune pressed image position if needed
-            final Offset pressedOffset = _micPressed ? const Offset(0, 0) : Offset.zero; // e.g. Offset(0, 0) or tweak if needed
+            const double centerX = defaultLeft + defaultSize/2;
+            const double centerY = defaultTop  + defaultSize/2;
+            final double micSize = _micPressed ? pressedSize : defaultSize;
             return [
               Positioned(
-                left: centerX - boxW/2,
-                top: centerY - boxH/2,
+                left: centerX - micSize/2,
+                top: centerY - micSize/2,
                 child: GestureDetector(
                   onTapDown: (_) {
                     setState(() => _micPressed = true);
@@ -289,8 +319,8 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
-                    width: boxW,
-                    height: boxH,
+                    width: micSize,
+                    height: micSize,
                     alignment: Alignment.center,
                     child: Stack(
                       alignment: Alignment.center,
@@ -298,34 +328,31 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                         if (Theme.of(context).brightness == Brightness.dark)
                           Image.asset(
                             'assets/Ellipse 1.png',
-                            width: boxW,
-                            height: boxH,
+                            width: micSize,
+                            height: micSize,
                             fit: BoxFit.contain,
                             color: Color(0xFF727475),
                             colorBlendMode: BlendMode.srcIn,
                           ),
                         if (_micPressed)
-                          Transform.translate(
-                            offset: pressedOffset,
-                            child: Image.asset(
-                              micPressed,
-                              width: imgW,
-                              height: imgH,
-                              fit: BoxFit.contain,
-                            ),
+                          Image.asset(
+                            micPressed,
+                            width: micSize,
+                            height: micSize,
+                            fit: BoxFit.contain,
                           )
                         else if (Theme.of(context).brightness == Brightness.dark)
                           Image.asset(
                             'assets/BigMic_darkmode.png',
-                            width: imgW,
-                            height: imgH,
+                            width: micSize,
+                            height: micSize,
                             fit: BoxFit.contain,
                           )
                         else
                           Image.asset(
                             micDefault,
-                            width: imgW,
-                            height: imgH,
+                            width: micSize,
+                            height: micSize,
                             fit: BoxFit.contain,
                           ),
                       ],
@@ -390,17 +417,27 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: SingleChildScrollView(
-                        child: Text(
-                          _transcribedText.isNotEmpty ? _transcribedText : 'Say something...!',
-                          style: const TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w500,
-                            fontSize: 20,
-                            color: Colors.black,
-                          ),
+                    child: TextField(
+                      controller: _textController,
+                      maxLines: null,
+                      expands: true,
+                      keyboardType: TextInputType.multiline,
+                      textAlignVertical: TextAlignVertical.top,
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 20,
+                        color: Colors.black,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isCollapsed: true,
+                        hintText: 'Say something...!',
+                        hintStyle: TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 20,
+                          color: Colors.black54,
                         ),
                       ),
                     ),
@@ -422,17 +459,27 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: SingleChildScrollView(
-                        child: Text(
-                          _transcribedText.isNotEmpty ? _transcribedText : 'Say something...!',
-                          style: const TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w500,
-                            fontSize: 20,
-                            color: Colors.white,
-                          ),
+                    child: TextField(
+                      controller: _textController,
+                      maxLines: null,
+                      expands: true,
+                      keyboardType: TextInputType.multiline,
+                      textAlignVertical: TextAlignVertical.top,
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isCollapsed: true,
+                        hintText: 'Say something...!',
+                        hintStyle: TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 20,
+                          color: Colors.white70,
                         ),
                       ),
                     ),

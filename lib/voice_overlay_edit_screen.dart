@@ -48,16 +48,19 @@ class _VoiceOverlayEditScreenState extends State<VoiceOverlayEditScreen> {
     final lower = text.toLowerCase();
     if (lower.contains('happy') ||
         lower.contains('joy') ||
-        lower.contains('excited'))
+        lower.contains('excited')) {
       return 'Happy';
+    }
     if (lower.contains('sad') ||
         lower.contains('down') ||
-        lower.contains('cry'))
+        lower.contains('cry')) {
       return 'Sad';
+    }
     if (lower.contains('angry') ||
         lower.contains('mad') ||
-        lower.contains('furious'))
+        lower.contains('furious')) {
       return 'Angry';
+    }
     if (lower.contains('calm') || lower.contains('relaxed')) return 'Calm';
     if (lower.contains('anxious') || lower.contains('nervous'))
       return 'Anxious';
@@ -113,7 +116,10 @@ class _VoiceOverlayEditScreenState extends State<VoiceOverlayEditScreen> {
               height: 150,
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F2FB),
+                  // Light mode is the source of truth; in dark mode only the color changes.
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).cardColor
+                      : const Color(0xFFE8F2FB),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),

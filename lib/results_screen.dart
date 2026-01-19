@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
@@ -15,7 +14,12 @@ class ResultsScreen extends StatefulWidget {
   final String mood;
   final Map<String, String> themeAssets;
   final AppThemeMode themeMode;
-  const ResultsScreen({super.key, required this.mood, required this.themeAssets, required this.themeMode});
+  const ResultsScreen({
+    super.key,
+    required this.mood,
+    required this.themeAssets,
+    required this.themeMode,
+  });
 
   @override
   State<ResultsScreen> createState() => _ResultsScreenState();
@@ -29,17 +33,23 @@ class _ResultsScreenState extends State<ResultsScreen> {
   void _handleOpenInSpotify() async {
     String url = '';
     if (widget.mood == 'Happy') {
-      url = 'https://open.spotify.com/playlist/4Fh0313D3PitYzICKHhZ7r?si=32b6fb1eede94416';
+      url =
+          'https://open.spotify.com/playlist/4Fh0313D3PitYzICKHhZ7r?si=32b6fb1eede94416';
     } else if (widget.mood == 'Sad') {
-      url = 'https://open.spotify.com/album/2N1ab00YnjAe9TBxtg7YGx?si=_XOELIsgSouVVf19QZNqaQ';
+      url =
+          'https://open.spotify.com/album/2N1ab00YnjAe9TBxtg7YGx?si=_XOELIsgSouVVf19QZNqaQ';
     } else if (widget.mood == 'Calm') {
-      url = 'https://open.spotify.com/playlist/4hRuPiX2bzpPzfVTqVCrRe?si=96f0ddd76f264308';
+      url =
+          'https://open.spotify.com/playlist/4hRuPiX2bzpPzfVTqVCrRe?si=96f0ddd76f264308';
     } else if (widget.mood == 'Angry') {
-      url = 'https://open.spotify.com/playlist/1rxPW5NOclEZX9V1mxwd0i?si=09ac684f8c0949bd';
+      url =
+          'https://open.spotify.com/playlist/1rxPW5NOclEZX9V1mxwd0i?si=09ac684f8c0949bd';
     } else if (widget.mood == 'Romantic') {
-      url = 'https://open.spotify.com/playlist/37i9dQZF1EVGJJ3r00UGAt?si=7c4d556fe4af4d27';
+      url =
+          'https://open.spotify.com/playlist/37i9dQZF1EVGJJ3r00UGAt?si=7c4d556fe4af4d27';
     } else if (widget.mood == 'Anxious') {
-      url = 'https://open.spotify.com/playlist/1OvEwx07iqXhhDVB4AlVmo?si=d483e9244c2b46b7';
+      url =
+          'https://open.spotify.com/playlist/1OvEwx07iqXhhDVB4AlVmo?si=d483e9244c2b46b7';
     }
     if (url.isEmpty) return;
     final uri = Uri.parse(url);
@@ -67,17 +77,23 @@ class _ResultsScreenState extends State<ResultsScreen> {
   void _handleShare() {
     String url = '';
     if (widget.mood == 'Happy') {
-      url = 'https://open.spotify.com/playlist/4Fh0313D3PitYzICKHhZ7r?si=32b6fb1eede94416';
+      url =
+          'https://open.spotify.com/playlist/4Fh0313D3PitYzICKHhZ7r?si=32b6fb1eede94416';
     } else if (widget.mood == 'Sad') {
-      url = 'https://open.spotify.com/album/2N1ab00YnjAe9TBxtg7YGx?si=_XOELIsgSouVVf19QZNqaQ';
+      url =
+          'https://open.spotify.com/album/2N1ab00YnjAe9TBxtg7YGx?si=_XOELIsgSouVVf19QZNqaQ';
     } else if (widget.mood == 'Calm') {
-      url = 'https://open.spotify.com/playlist/4hRuPiX2bzpPzfVTqVCrRe?si=96f0ddd76f264308';
+      url =
+          'https://open.spotify.com/playlist/4hRuPiX2bzpPzfVTqVCrRe?si=96f0ddd76f264308';
     } else if (widget.mood == 'Angry') {
-      url = 'https://open.spotify.com/playlist/1rxPW5NOclEZX9V1mxwd0i?si=09ac684f8c0949bd';
+      url =
+          'https://open.spotify.com/playlist/1rxPW5NOclEZX9V1mxwd0i?si=09ac684f8c0949bd';
     } else if (widget.mood == 'Romantic') {
-      url = 'https://open.spotify.com/playlist/37i9dQZF1EVGJJ3r00UGAt?si=7c4d556fe4af4d27';
+      url =
+          'https://open.spotify.com/playlist/37i9dQZF1EVGJJ3r00UGAt?si=7c4d556fe4af4d27';
     } else if (widget.mood == 'Anxious') {
-      url = 'https://open.spotify.com/playlist/1OvEwx07iqXhhDVB4AlVmo?si=d483e9244c2b46b7';
+      url =
+          'https://open.spotify.com/playlist/1OvEwx07iqXhhDVB4AlVmo?si=d483e9244c2b46b7';
     }
     if (url.isNotEmpty) {
       Share.share(url, subject: 'Moosik playlist');
@@ -99,6 +115,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
             height: 29,
             child: _ShareButton(onPressed: _handleShare),
           ),
+
           // Try another mood button
           Positioned(
             left: 140.5,
@@ -121,7 +138,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
-                    color: isTryMoodPressed ? Theme.of(context).disabledColor : Theme.of(context).textTheme.bodyLarge?.color,
+                    color: isTryMoodPressed
+                        ? Theme.of(context).disabledColor
+                        : Theme.of(context).textTheme.bodyLarge?.color,
                     fontFamily: 'Arial',
                   ),
                   maxLines: 1,
@@ -130,6 +149,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
               ),
             ),
           ),
+
           // Header and mood name (Figma style)
           Positioned(
             left: 55.5,
@@ -173,36 +193,48 @@ class _ResultsScreenState extends State<ResultsScreen> {
               ],
             ),
           ),
-          // Song cards (Figma style, fixed for Happy/Sad/Calm/Angry/Romantic/Anxious mood)
+
+          // Song cards
           if (widget.mood == 'Happy') ...[
             Positioned(
               left: 58.5,
               top: 164,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Sunroof', artist: 'Nicky Youre, hey daisyy'),
+              child: _FigmaSongCard(
+                songName: 'Sunroof',
+                artist: 'Nicky Youre, hey daisyy',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 267,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Espresso', artist: 'Sabrina Carpenter'),
+              child: _FigmaSongCard(
+                songName: 'Espresso',
+                artist: 'Sabrina Carpenter',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 369,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'HOT TO GO!', artist: 'Chappell Roan'),
+              child: _FigmaSongCard(
+                songName: 'HOT TO GO!',
+                artist: 'Chappell Roan',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 471,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 
-                'CAN\'T STOP THE FEELING!', artist: 'Justin Timberlake'),
+              child: _FigmaSongCard(
+                songName: 'CAN\'T STOP THE FEELING!',
+                artist: 'Justin Timberlake',
+              ),
             ),
           ] else if (widget.mood == 'Sad') ...[
             Positioned(
@@ -217,21 +249,30 @@ class _ResultsScreenState extends State<ResultsScreen> {
               top: 267,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Stone Cold', artist: 'Demi Lovato'),
+              child: _FigmaSongCard(
+                songName: 'Stone Cold',
+                artist: 'Demi Lovato',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 369,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Read All About It, Pt. III', artist: 'Emeli Sand?'),
+              child: _FigmaSongCard(
+                songName: 'Read All About It, Pt. III',
+                artist: 'Emeli Sand?',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 471,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Beautiful Scars', artist: 'Maximillian'),
+              child: _FigmaSongCard(
+                songName: 'Beautiful Scars',
+                artist: 'Maximillian',
+              ),
             ),
           ] else if (widget.mood == 'Calm') ...[
             Positioned(
@@ -239,14 +280,20 @@ class _ResultsScreenState extends State<ResultsScreen> {
               top: 164,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Matches', artist: 'Cash Cash, ROZES'),
+              child: _FigmaSongCard(
+                songName: 'Matches',
+                artist: 'Cash Cash, ROZES',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 267,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Congratulations', artist: 'Post Malone, Quavo'),
+              child: _FigmaSongCard(
+                songName: 'Congratulations',
+                artist: 'Post Malone, Quavo',
+              ),
             ),
             Positioned(
               left: 58.5,
@@ -268,14 +315,20 @@ class _ResultsScreenState extends State<ResultsScreen> {
               top: 164,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'abcdefu (angrier)', artist: 'GAYLE'),
+              child: _FigmaSongCard(
+                songName: 'abcdefu (angrier)',
+                artist: 'GAYLE',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 267,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'this is what heartbreak feels like', artist: 'JVKE'),
+              child: _FigmaSongCard(
+                songName: 'this is what heartbreak feels like',
+                artist: 'JVKE',
+              ),
             ),
             Positioned(
               left: 58.5,
@@ -289,7 +342,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
               top: 471,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: '10 Things I Hate About You', artist: 'Leah Kate'),
+              child: _FigmaSongCard(
+                songName: '10 Things I Hate About You',
+                artist: 'Leah Kate',
+              ),
             ),
           ] else if (widget.mood == 'Romantic') ...[
             Positioned(
@@ -297,21 +353,30 @@ class _ResultsScreenState extends State<ResultsScreen> {
               top: 164,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Help Yourself to Me', artist: 'Madrugada'),
+              child: _FigmaSongCard(
+                songName: 'Help Yourself to Me',
+                artist: 'Madrugada',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 267,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Fill The Void (with Lily Rose Depp, Ramsey)', artist: 'The Weeknd, Lily-Rose Depp, Ramsey'),
+              child: _FigmaSongCard(
+                songName: 'Fill The Void (with Lily Rose Depp, Ramsey)',
+                artist: 'The Weeknd, Lily-Rose Depp, Ramsey',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 369,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Visions of Gideon', artist: 'Sufjan Stevens'),
+              child: _FigmaSongCard(
+                songName: 'Visions of Gideon',
+                artist: 'Sufjan Stevens',
+              ),
             ),
             Positioned(
               left: 58.5,
@@ -326,61 +391,84 @@ class _ResultsScreenState extends State<ResultsScreen> {
               top: 164,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Every Little Cell - Equanimous Edit', artist: 'The Great Medicine Show, Naya, Equanimous'),
+              child: _FigmaSongCard(
+                songName: 'Every Little Cell - Equanimous Edit',
+                artist: 'The Great Medicine Show, Naya, Equanimous',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 267,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Holding Space', artist: 'Mayyadda'),
+              child: _FigmaSongCard(
+                songName: 'Holding Space',
+                artist: 'Mayyadda',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 369,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Sharing an Umbrella', artist: 'Hentaidesu'),
+              child: _FigmaSongCard(
+                songName: 'Sharing an Umbrella',
+                artist: 'Hentaidesu',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 471,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 
-                "I'll Keep You Safe", artist: 'sagun, Shiloh Dynasty'),
+              child: _FigmaSongCard(
+                songName: "I'll Keep You Safe",
+                artist: 'sagun, Shiloh Dynasty',
+              ),
             ),
           ] else ...[
-            // Default placeholders for other moods (can be customized)
             Positioned(
               left: 58.5,
               top: 164,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Song Name 1', artist: 'Artist 1'),
+              child: _FigmaSongCard(
+                songName: 'Song Name 1',
+                artist: 'Artist 1',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 267,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Song Name 2', artist: 'Artist 2'),
+              child: _FigmaSongCard(
+                songName: 'Song Name 2',
+                artist: 'Artist 2',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 369,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Song Name 3', artist: 'Artist 3'),
+              child: _FigmaSongCard(
+                songName: 'Song Name 3',
+                artist: 'Artist 3',
+              ),
             ),
             Positioned(
               left: 58.5,
               top: 471,
               width: 294,
               height: 79.8,
-              child: _FigmaSongCard(songName: 'Song Name 4', artist: 'Artist 4'),
+              child: _FigmaSongCard(
+                songName: 'Song Name 4',
+                artist: 'Artist 4',
+              ),
             ),
           ],
+
           // Open in Spotify button (image asset, changes on press)
           Positioned(
             left: 73.5,
@@ -418,7 +506,9 @@ class _ShareButtonState extends State<_ShareButton> {
         width: 29,
         height: 29,
         child: Image.asset(
-          _pressed ? _ResultsScreenState.sharePressed : _ResultsScreenState.shareDefault,
+          _pressed
+              ? _ResultsScreenState.sharePressed
+              : _ResultsScreenState.shareDefault,
           width: 29,
           height: 29,
           fit: BoxFit.contain,
@@ -443,66 +533,53 @@ class _SpotifyButtonState extends State<_SpotifyButton> {
   @override
   Widget build(BuildContext context) {
     final isLight = Theme.of(context).brightness == Brightness.light;
+
     return GestureDetector(
       onTap: widget.onPressed,
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
-      child: isLight
-          ? SizedBox(
+      child: Stack(
+        children: [
+          // Always render the SAME background asset
+          ClipRRect(
+            borderRadius: BorderRadius.circular(26),
+            child: Image.asset(
+              _pressed ? openSpotifyBgPressed : openSpotifyBgDefault,
               width: 264,
               height: 52,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(26),
-                    child: Image.asset(
-                      _pressed ? openSpotifyBgPressed : openSpotifyBgDefault,
-                      width: 264,
-                      height: 52,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  // No overlay text in light mode; PNG already contains label
-                ],
-              ),
-            )
-          : Container(
-              width: 264,
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                color: _pressed ? const Color(0xFF3A5A7A) : const Color(0xFF5B80A4),
-                borderRadius: BorderRadius.circular(50),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  'Open in Spotify?',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 24,
-                    letterSpacing: 0.5,
-                    color: Color(0xFFFFFBF7),
-                  ),
+              fit: BoxFit.cover,
+              // Light unchanged; dark tinted
+              color: isLight ? null : Theme.of(context).primaryColor,
+              colorBlendMode: isLight ? null : BlendMode.srcATop,
+            ),
+          ),
+
+          // Text layer (transparent in light, visible in dark)
+          Positioned.fill(
+            child: Center(
+              child: Text(
+                'Open in Spotify ->', // ✅ changed from "?" to "->"
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 24,
+                  letterSpacing: 0.5,
+                  color: isLight
+                      ? Colors.transparent
+                      : Theme.of(context).scaffoldBackgroundColor,
                 ),
               ),
             ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 // Figma style song card
-
-// Figma node 23:38 style song card
 class _FigmaSongCard extends StatelessWidget {
   final String songName;
   final String artist;
@@ -519,7 +596,7 @@ class _FigmaSongCard extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Album art placeholder (no icon, just a blank rounded rectangle)
+          // Album art placeholder
           Positioned(
             left: 15,
             top: 13,

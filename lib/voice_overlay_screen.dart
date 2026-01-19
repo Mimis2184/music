@@ -157,6 +157,8 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
     final String seeSuggestionsNormal = 'assets/Property 1=Default.png';
     final String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
 
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
@@ -175,7 +177,10 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.8),
+                  // Keep layout same; only color changes.
+                  color: isDark
+                      ? Colors.black.withOpacity(0.35)
+                      : Colors.white.withOpacity(0.8),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
@@ -195,44 +200,28 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
             ),
           ),
 
-          // 'moosik' logo or text depending on theme
-          if (widget.themeMode == AppThemeMode.dark)
-            Positioned(
-              left: 145,
-              top: 21,
-              child: SizedBox(
-                width: 122,
-                height: 49,
-                child: Image.asset(
-                  'assets/moosic_dark.png',
-                  width: 122,
-                  height: 49,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            )
-          else
-            Positioned(
-              left: 145,
-              top: 21,
-              child: SizedBox(
-                width: 122,
-                height: 49,
-                child: Center(
-                  child: Text(
-                    'moosik',
-                    style: TextStyle(
-                      fontFamily: 'Nunito',
-                      fontWeight: FontWeight.w800,
-                      fontSize: 36,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
+          // 'moosik' (use the same widget tree in both modes)
+          Positioned(
+            left: 145,
+            top: 21,
+            child: SizedBox(
+              width: 122,
+              height: 49,
+              child: Center(
+                child: Text(
+                  'moosik',
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 36,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
               ),
             ),
+          ),
 
-          // Full title (wider so it doesn't get cut)
+          // Full title
           Positioned(
             left: 91.5,
             top: 21 + 49 + 8,
@@ -295,30 +284,29 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                             width: 289,
                             height: 58,
                             fit: BoxFit.cover,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? const Color(0xFF2D547A)
+                            // Keep light mode intact; tint only in dark mode.
+                            color: isDark
+                                ? Theme.of(context).primaryColor
                                 : null,
-                            colorBlendMode:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? BlendMode.srcATop
-                                : null,
+                            colorBlendMode: isDark ? BlendMode.srcATop : null,
                           ),
                         ),
-                        if (Theme.of(context).brightness == Brightness.dark)
-                          Positioned.fill(
-                            child: Center(
-                              child: Text(
-                                'See Suggestions->',
-                                style: TextStyle(
-                                  fontFamily: 'Arial Rounded MT Bold',
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 20,
-                                  color: const Color(0xFFFFFBF7),
-                                ),
+                        // Keep same tree: always present, but invisible in light mode.
+                        Positioned.fill(
+                          child: Center(
+                            child: Text(
+                              'See Suggestions->',
+                              style: TextStyle(
+                                fontFamily: 'Arial Rounded MT Bold',
+                                fontWeight: FontWeight.w600,
+                                fontSize: 20,
+                                color: isDark
+                                    ? const Color(0xFFFFFBF7)
+                                    : Colors.transparent,
                               ),
                             ),
                           ),
+                        ),
                       ],
                     ),
                   ),
@@ -374,7 +362,8 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        if (Theme.of(context).brightness == Brightness.dark)
+                        // Keep the same element in the tree; only show/tint in dark mode.
+                        if (isDark)
                           Image.asset(
                             'assets/Ellipse 1.png',
                             width: boxW,
@@ -390,8 +379,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                             height: imgH,
                             fit: BoxFit.contain,
                           )
-                        else if (Theme.of(context).brightness ==
-                            Brightness.dark)
+                        else if (isDark)
                           Image.asset(
                             'assets/BigMic_darkmode.png',
                             width: imgW,
@@ -422,8 +410,9 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               height: 150,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF727475)
+                  // Light mode is the source of truth; dark mode only changes color.
+                  color: isDark
+                      ? Theme.of(context).cardColor
                       : const Color(0xFFE8F2FB),
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -442,9 +431,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                           fontWeight: FontWeight.w500,
                           fontSize: 20,
                           color: _hasText
-                              ? (Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black)
+                              ? Theme.of(context).textTheme.bodyLarge?.color
                               : Colors.grey,
                         ),
                       ),
@@ -464,8 +451,9 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                 width: 300,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF727475)
+                  // Keep layout identical; only color changes.
+                  color: isDark
+                      ? Theme.of(context).cardColor
                       : Theme.of(context).colorScheme.secondaryContainer,
                   borderRadius: BorderRadius.circular(15),
                 ),
@@ -477,9 +465,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                       style: TextStyle(
                         fontFamily: 'Arial Rounded MT Bold',
                         fontSize: 20,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? const Color(0xFFEFEFEF)
-                            : Theme.of(context).textTheme.bodyLarge?.color,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                     Text(
@@ -487,8 +473,8 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                       style: TextStyle(
                         fontFamily: 'Arial Rounded MT Bold',
                         fontSize: 20,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? const Color(0xFF9076FE)
+                        color: isDark
+                            ? Theme.of(context).textTheme.bodyMedium?.color
                             : Theme.of(context).colorScheme.primary,
                       ),
                     ),

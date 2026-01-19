@@ -43,8 +43,11 @@ const String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
 class HomeScreen extends StatefulWidget {
   final Map<String, String> themeAssets;
   final AppThemeMode themeMode;
-  const HomeScreen(
-      {super.key, required this.themeAssets, required this.themeMode});
+  const HomeScreen({
+    super.key,
+    required this.themeAssets,
+    required this.themeMode,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -115,6 +118,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
@@ -152,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Main message (aligned under logo + title, not centered across the whole screen)
+          // Main message
           Positioned(
             left: 26,
             top: 185,
@@ -220,29 +225,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 56,
                     child: Stack(
                       children: [
-                        if (Theme.of(context).brightness == Brightness.dark)
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF312F2D),
-                              borderRadius: BorderRadius.circular(28),
-                            ),
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF312F2D)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(28),
                           ),
+                        ),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(28),
                           child: Center(
-                            child: Image.asset(
-                              Theme.of(context).brightness == Brightness.dark
-                                  ? (isMicPressed
-                                      ? smallMicPressedDark
-                                      : smallMicDark)
-                                  : (isMicPressed
-                                      ? smallMicPressed
-                                      : smallMicNormal),
-                              width: 56,
-                              height: 56,
-                              fit: BoxFit.contain,
+                            // Slightly lower visual centering
+                            child: Transform.translate(
+                              offset: const Offset(0, 2),
+                              child: Image.asset(
+                                isDark
+                                    ? (isMicPressed
+                                          ? smallMicPressedDark
+                                          : smallMicDark)
+                                    : (isMicPressed
+                                          ? smallMicPressed
+                                          : smallMicNormal),
+                                width: 56,
+                                height: 56,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                         ),
@@ -284,28 +294,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 56,
                     child: Stack(
                       children: [
-                        if (Theme.of(context).brightness == Brightness.dark)
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF312F2D),
-                              borderRadius: BorderRadius.circular(28),
-                            ),
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF312F2D)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(28),
                           ),
+                        ),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(28),
-                          child: Image.asset(
-                            Theme.of(context).brightness == Brightness.dark
-                                ? (isCameraPressed
-                                    ? smallCameraPressedDark
-                                    : smallCameraDark)
-                                : (isCameraPressed
-                                    ? smallCameraPressed
-                                    : smallCameraNormal),
-                            width: 56,
-                            height: 56,
-                            fit: BoxFit.cover,
+                          child: Center(
+                            // Slightly lower visual centering
+                            child: Transform.translate(
+                              offset: const Offset(0, 2),
+                              child: Image.asset(
+                                isDark
+                                    ? (isCameraPressed
+                                          ? smallCameraPressedDark
+                                          : smallCameraDark)
+                                    : (isCameraPressed
+                                          ? smallCameraPressed
+                                          : smallCameraNormal),
+                                width: 56,
+                                height: 56,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -351,29 +368,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 289,
                         height: 58,
                         fit: BoxFit.cover,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? const Color(0xFF2D547A)
-                            : null,
-                        colorBlendMode:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? BlendMode.srcATop
-                                : null,
+                        color: isDark ? Theme.of(context).primaryColor : null,
+                        colorBlendMode: isDark ? BlendMode.srcATop : null,
                       ),
                     ),
-                    if (Theme.of(context).brightness == Brightness.dark)
-                      Positioned.fill(
-                        child: Center(
-                          child: Text(
-                            'See Suggestions ?',
-                            style: TextStyle(
-                              fontFamily: 'Arial Rounded MT Bold',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 20,
-                              color: const Color(0xFF312F2D),
-                            ),
+                    Positioned.fill(
+                      child: Center(
+                        child: Text(
+                          'See Suggestions ->',
+                          style: TextStyle(
+                            fontFamily: 'Arial Rounded MT Bold',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 20,
+                            color: isDark
+                                ? Theme.of(context).scaffoldBackgroundColor
+                                : Colors.transparent,
                           ),
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -394,11 +407,11 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? (Theme.of(context).brightness == Brightness.light
-                  ? AppColors.lightSelectedMood
-                  : AppColors.darkSelectedMood)
+                    ? AppColors.lightSelectedMood
+                    : AppColors.darkSelectedMood)
               : (Theme.of(context).brightness == Brightness.light
-                  ? AppColors.lightButtonColor2
-                  : Theme.of(context).primaryColor),
+                    ? AppColors.lightButtonColor2
+                    : Theme.of(context).primaryColor),
           borderRadius: BorderRadius.circular(28),
         ),
         child: Column(

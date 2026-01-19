@@ -93,9 +93,9 @@ class _CameraScreenState extends State<CameraScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isCameraReady = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Camera init error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Camera init error: $e')));
     }
   }
 
@@ -107,9 +107,9 @@ class _CameraScreenState extends State<CameraScreen> {
     try {
       final controller = _cameraController;
       if (controller == null || !_isCameraReady) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Camera not ready')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Camera not ready')));
         return;
       }
 
@@ -129,14 +129,13 @@ class _CameraScreenState extends State<CameraScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => isAnalyzing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Camera capture error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Camera capture error: $e')));
     }
   }
 
   Future<void> _analyzeCapturedPhoto() async {
-
     if (kIsWeb) {
       if (!mounted) return;
       setState(() {
@@ -162,7 +161,7 @@ class _CameraScreenState extends State<CameraScreen> {
     if (faces.isEmpty) {
       setState(() {
         _faceFound = false;
-        detectedMood = 'Anxious'; // fallback ��� �� ��������� �� flow
+        detectedMood = 'Anxious'; // fallback
         isAnalyzing = false;
       });
       return;
@@ -215,6 +214,8 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
@@ -323,63 +324,62 @@ class _CameraScreenState extends State<CameraScreen> {
                           ],
                         )
                       : (_isCameraReady && _cameraController != null)
-                          ? Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                CameraPreview(_cameraController!),
-                                Align(
-                                  alignment: Alignment.bottomCenter,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.35),
-                                        borderRadius: BorderRadius.circular(18),
-                                      ),
-                                      child: const Text(
-                                        'Tap to capture',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          fontFamily: 'Arial Rounded MT Bold',
-                                        ),
-                                      ),
-                                    ),
+                      ? Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            CameraPreview(_cameraController!),
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 8,
                                   ),
-                                ),
-                              ],
-                            )
-                          : Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(
-                                    width: 28,
-                                    height: 28,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 3,
-                                    ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.35),
+                                    borderRadius: BorderRadius.circular(18),
                                   ),
-                                  const SizedBox(height: 14),
-                                  Text(
-                                    'Opening camera...',
+                                  child: const Text(
+                                    'Tap to capture',
                                     style: TextStyle(
+                                      color: Colors.white,
                                       fontSize: 16,
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge
-                                          ?.color,
+                                      fontWeight: FontWeight.w600,
                                       fontFamily: 'Arial Rounded MT Bold',
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
                             ),
+                          ],
+                        )
+                      : Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                'Opening camera...',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
+                                  fontFamily: 'Arial Rounded MT Bold',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -457,29 +457,26 @@ class _CameraScreenState extends State<CameraScreen> {
                         width: 289,
                         height: 58,
                         fit: BoxFit.cover,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? const Color(0xFF2D547A)
-                            : null,
-                        colorBlendMode:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? BlendMode.srcATop
-                                : null,
+                        color: isDark ? Theme.of(context).primaryColor : null,
+                        colorBlendMode: isDark ? BlendMode.srcATop : null,
                       ),
                     ),
-                    if (Theme.of(context).brightness == Brightness.dark)
-                      const Positioned.fill(
-                        child: Center(
-                          child: Text(
-                            'See Suggestions ?',
-                            style: TextStyle(
-                              fontFamily: 'Arial Rounded MT Bold',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 20,
-                              color: Color(0xFF312F2D),
-                            ),
+                    // Text overlay: hidden in light (png already has it), shown in dark.
+                    Positioned.fill(
+                      child: Center(
+                        child: Text(
+                          'See Suggestions ->',
+                          style: TextStyle(
+                            fontFamily: 'Arial Rounded MT Bold',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 20,
+                            color: isDark
+                                ? Theme.of(context).scaffoldBackgroundColor
+                                : Colors.transparent,
                           ),
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -503,7 +500,9 @@ class _CameraScreenState extends State<CameraScreen> {
                   height: 40,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
+                    color: isDark
+                        ? Colors.black.withOpacity(0.35)
+                        : Colors.white.withOpacity(0.8),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(

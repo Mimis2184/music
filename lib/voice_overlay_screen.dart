@@ -1,15 +1,19 @@
+// voice_overlay_screen.dart
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import 'results_screen.dart';
 import 'voice_overlay_edit_screen.dart';
-
 import 'main.dart';
 
 class VoiceOverlayScreen extends StatefulWidget {
   final Map<String, String> themeAssets;
   final AppThemeMode themeMode;
-  const VoiceOverlayScreen({super.key, required this.themeAssets, required this.themeMode});
+  const VoiceOverlayScreen({
+    super.key,
+    required this.themeAssets,
+    required this.themeMode,
+  });
 
   @override
   State<VoiceOverlayScreen> createState() => _VoiceOverlayScreenState();
@@ -22,61 +26,91 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
   bool _editPressed = false;
 
   late stt.SpeechToText _speech;
-  final TextEditingController _textController = TextEditingController();
+  bool _speechAvailable = false;
+
   String _transcribedText = '';
-  String _detectedMood = 'Happy';
+  String _detectedMood = '';
   bool _isListening = false;
+
+  bool get _hasText => _transcribedText.trim().isNotEmpty;
 
   @override
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
-    _textController.addListener(() {
-      final text = _textController.text;
-      // Keep _transcribedText in sync with what the user types.
-      _transcribedText = text;
-      // Detect emotion from the English text and update the UI.
-      final mood = _analyzeEmotion(text);
-      if (mood != _detectedMood) {
-        setState(() => _detectedMood = mood);
-      }
-    });
+    _initSpeech();
+  }
+
+  Future<void> _initSpeech() async {
+    final available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'notListening' || status == 'done') {
+          if (mounted) setState(() => _isListening = false);
+        }
+      },
+      onError: (error) {
+        if (mounted) setState(() => _isListening = false);
+      },
+    );
+    if (mounted) {
+      setState(() {
+        _speechAvailable = available;
+      });
+    }
   }
 
   void _startListening() async {
-    bool available = await _speech.initialize();
-    if (available) {
-      setState(() => _isListening = true);
-      _speech.listen(
-        onResult: (result) {
-          final words = result.recognizedWords;
-          // Update both the controller (what user sees/edits) and our backing field.
-          _textController.text = words;
-          _textController.selection = TextSelection.fromPosition(
-            TextPosition(offset: _textController.text.length),
-          );
-          setState(() {
-            _transcribedText = words;
-            _detectedMood = _analyzeEmotion(words);
-          });
-        },
-      );
+    if (!_speechAvailable) {
+      await _initSpeech();
     }
+    if (!_speechAvailable) return;
+
+    // Start fresh while pressed
+    setState(() {
+      _isListening = true;
+      _transcribedText = '';
+      _detectedMood = '';
+    });
+
+    _speech.listen(
+      localeId: 'en_US',
+      partialResults: true,
+      listenMode: stt.ListenMode.dictation,
+      onResult: (result) {
+        final text = result.recognizedWords;
+        setState(() {
+          _transcribedText = text;
+          _detectedMood = _analyzeEmotion(text);
+        });
+      },
+    );
   }
 
   void _stopListening() async {
     await _speech.stop();
-    setState(() => _isListening = false);
+    if (mounted) {
+      setState(() => _isListening = false);
+    }
   }
 
   String _analyzeEmotion(String text) {
-    // Simple keyword-based emotion detection
+    // Simple keyword-based emotion detection (English keywords)
     final lower = text.toLowerCase();
-    if (lower.contains('happy') || lower.contains('joy') || lower.contains('excited')) return 'Happy';
-    if (lower.contains('sad') || lower.contains('down') || lower.contains('cry')) return 'Sad';
-    if (lower.contains('angry') || lower.contains('mad') || lower.contains('furious')) return 'Angry';
+    if (lower.contains('happy') ||
+        lower.contains('joy') ||
+        lower.contains('excited'))
+      return 'Happy';
+    if (lower.contains('sad') ||
+        lower.contains('down') ||
+        lower.contains('cry'))
+      return 'Sad';
+    if (lower.contains('angry') ||
+        lower.contains('mad') ||
+        lower.contains('furious'))
+      return 'Angry';
     if (lower.contains('calm') || lower.contains('relaxed')) return 'Calm';
-    if (lower.contains('anxious') || lower.contains('nervous')) return 'Anxious';
+    if (lower.contains('anxious') || lower.contains('nervous'))
+      return 'Anxious';
     if (lower.contains('romantic') || lower.contains('love')) return 'Romantic';
     return 'Neutral';
   }
@@ -87,48 +121,41 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
         builder: (context) => VoiceOverlayEditScreen(
           themeAssets: widget.themeAssets,
           themeMode: widget.themeMode,
-          initialText: _textController.text,
+          initialText: _transcribedText,
         ),
       ),
     );
+
     if (result != null && result is Map) {
-      String text = result['text'] ?? '';
-      String mood = result['mood'] ?? _extractMoodFromText(text);
+      final newText = (result['text'] ?? '') as String;
+      final newMood = (result['mood'] ?? '') as String;
+
       setState(() {
-        _textController.text = text;
-        _textController.selection = TextSelection.fromPosition(TextPosition(offset: _textController.text.length));
-        _transcribedText = text;
-        _detectedMood = mood;
+        _transcribedText = newText;
+        _detectedMood = newText.trim().isEmpty
+            ? ''
+            : (newMood.isNotEmpty ? newMood : _analyzeEmotion(newText));
       });
     }
   }
+
   @override
   void dispose() {
-    _textController.dispose();
+    _speech.stop();
     super.dispose();
-  }
-
-  String _extractMoodFromText(String text) {
-    final lower = text.toLowerCase();
-    if (lower.contains('happy')) return 'Happy';
-    if (lower.contains('sad')) return 'Sad';
-    if (lower.contains('anxious')) return 'Anxious';
-    if (lower.contains('romantic')) return 'Romantic';
-    if (lower.contains('angry')) return 'Angry';
-    if (lower.contains('calm')) return 'Calm';
-    return 'Neutral';
   }
 
   @override
   Widget build(BuildContext context) {
-    // Asset URLs from Figma
-      final String arrowDefault = 'assets/arrow_default.png';
-      final String arrowPressed = 'assets/Property 1=ArrowBackPressed.png';
-      // Use local assets for mic (always the same regardless of theme)
-      final String micDefault = 'assets/BigMIC_default.png';
-      final String micPressed = 'assets/BigMic_pressed_right.png';
-      final String seeSuggestionsNormal = 'assets/Property 1=Default.png';
-      final String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
+    // Assets
+    final String arrowDefault = 'assets/arrow_default.png';
+    final String arrowPressed = 'assets/Property 1=ArrowBackPressed.png';
+
+    final String micDefault = 'assets/micdef.png';
+    final String micPressed = 'assets/micpre.png';
+
+    final String seeSuggestionsNormal = 'assets/Property 1=Default.png';
+    final String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -205,122 +232,144 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               ),
             ),
 
-          // 'Tell us how you feel' text under moosik, matching moosik color
+          // Full title (wider so it doesn't get cut)
           Positioned(
-  left: 0,
-  right: 0,
-  top: 21 + 49 + 8, // 8px gap below logo/text
-  child: Center(
-    child: Text(
-      'Tell us how you feel',
-      style: TextStyle(
-        fontFamily: 'Arial Rounded MT Bold',
-        fontWeight: FontWeight.w400,
-        fontSize: 18,
-        color: Theme.of(context).textTheme.bodyLarge?.color,
-      ),
-      textAlign: TextAlign.center,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      softWrap: false,
-    ),
-  ),
-),
-
-
-
-
-
-
-
-          // See Suggestions button (light mode: revert to previous custom style)
-          Positioned(
-            left: 61,
-            top: 576,
-            child: GestureDetector(
-              onTapDown: (_) => setState(() => _seeSuggestionsPressed = true),
-              onTapUp: (_) {
-                setState(() => _seeSuggestionsPressed = false);
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ResultsScreen(
-                      mood: _detectedMood,
-                      themeAssets: widget.themeAssets,
-                      themeMode: widget.themeMode,
-                    ),
+            left: 91.5,
+            top: 21 + 49 + 8,
+            child: SizedBox(
+              width: 228,
+              height: 28,
+              child: Center(
+                child: Text(
+                  'Tell us how you feel',
+                  style: TextStyle(
+                    fontFamily: 'Arial Rounded MT Bold',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 18,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
-                );
-              },
-              onTapCancel: () => setState(() => _seeSuggestionsPressed = false),
-              child: SizedBox(
-                width: 289,
-                height: 58,
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(29),
-                      child: Image.asset(
-                        Theme.of(context).brightness == Brightness.dark
-                            ? (_seeSuggestionsPressed ? seeSuggestionsPressed : seeSuggestionsNormal)
-                            : (_seeSuggestionsPressed ? seeSuggestionsPressed : seeSuggestionsNormal),
-                        width: 289,
-                        height: 58,
-                        fit: BoxFit.cover,
-                        color: Theme.of(context).brightness == Brightness.dark ? Color(0xFF2D547A) : null,
-                        colorBlendMode: Theme.of(context).brightness == Brightness.dark ? BlendMode.srcATop : null,
-                      ),
-                    ),
-                    if (Theme.of(context).brightness == Brightness.dark)
-                      Positioned.fill(
-                        child: Center(
-                          child: Text(
-                            'See Suggestions->',
-                            style: TextStyle(
-                              fontFamily: 'Arial Rounded MT Bold',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 20,
-                              color: Color(0xFFFFFBF7), // light color for dark mode
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),
           ),
-          // Big Microphone with Ellipse effect when pressed (centered, independent box/img sizes)
+
+          // See Suggestions button (disabled until we have text)
+          Positioned(
+            left: 61,
+            top: 576,
+            child: Opacity(
+              opacity: _hasText ? 1.0 : 0.4,
+              child: IgnorePointer(
+                ignoring: !_hasText,
+                child: GestureDetector(
+                  onTapDown: (_) =>
+                      setState(() => _seeSuggestionsPressed = true),
+                  onTapUp: (_) {
+                    setState(() => _seeSuggestionsPressed = false);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ResultsScreen(
+                          mood: _detectedMood,
+                          themeAssets: widget.themeAssets,
+                          themeMode: widget.themeMode,
+                        ),
+                      ),
+                    );
+                  },
+                  onTapCancel: () =>
+                      setState(() => _seeSuggestionsPressed = false),
+                  child: SizedBox(
+                    width: 289,
+                    height: 58,
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(29),
+                          child: Image.asset(
+                            _seeSuggestionsPressed
+                                ? seeSuggestionsPressed
+                                : seeSuggestionsNormal,
+                            width: 289,
+                            height: 58,
+                            fit: BoxFit.cover,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFF2D547A)
+                                : null,
+                            colorBlendMode:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? BlendMode.srcATop
+                                : null,
+                          ),
+                        ),
+                        if (Theme.of(context).brightness == Brightness.dark)
+                          Positioned.fill(
+                            child: Center(
+                              child: Text(
+                                'See Suggestions->',
+                                style: TextStyle(
+                                  fontFamily: 'Arial Rounded MT Bold',
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 20,
+                                  color: const Color(0xFFFFFBF7),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Big Microphone: listens while pressed
           ...(() {
-            // Default and pressed sizes for the mic
-            const double defaultSize = 124.0;
-            const double pressedSize = 140.0;
-            // Center coordinates (from previous logic)
-            const double defaultLeft = 91.5 + 228/2 - defaultSize/2;
-            const double defaultTop  = 106 + 29 + 10;
-            const double centerX = defaultLeft + defaultSize/2;
-            const double centerY = defaultTop  + defaultSize/2;
-            final double micSize = _micPressed ? pressedSize : defaultSize;
+            const double defaultBoxW = 124.0;
+            const double defaultBoxH = 124.0;
+            const double defaultImgW = 124.0;
+            const double defaultImgH = 124.0;
+
+            const double pressedBoxW = 180.0;
+            const double pressedBoxH = 180.0;
+            const double pressedImgW = 140.0;
+            const double pressedImgH = 140.0;
+
+            const double defaultLeft = 91.5 + 228 / 2 - defaultBoxW / 2;
+            const double defaultTop = 106 + 29 + 10;
+            const double centerX = defaultLeft + defaultBoxW / 2;
+            const double centerY = defaultTop + defaultBoxH / 2;
+
+            final double boxW = _micPressed ? pressedBoxW : defaultBoxW;
+            final double boxH = _micPressed ? pressedBoxH : defaultBoxH;
+            final double imgW = _micPressed ? pressedImgW : defaultImgW;
+            final double imgH = _micPressed ? pressedImgH : defaultImgH;
+
             return [
               Positioned(
-                left: centerX - micSize/2,
-                top: centerY - micSize/2,
+                left: centerX - boxW / 2,
+                top: centerY - boxH / 2,
                 child: GestureDetector(
                   onTapDown: (_) {
                     setState(() => _micPressed = true);
-                    _startListening();
+                    if (!_isListening) _startListening();
                   },
                   onTapUp: (_) {
                     setState(() => _micPressed = false);
-                    _stopListening();
+                    if (_isListening) _stopListening();
                   },
                   onTapCancel: () {
                     setState(() => _micPressed = false);
-                    _stopListening();
+                    if (_isListening) _stopListening();
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
-                    width: micSize,
-                    height: micSize,
+                    width: boxW,
+                    height: boxH,
                     alignment: Alignment.center,
                     child: Stack(
                       alignment: Alignment.center,
@@ -328,31 +377,32 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
                         if (Theme.of(context).brightness == Brightness.dark)
                           Image.asset(
                             'assets/Ellipse 1.png',
-                            width: micSize,
-                            height: micSize,
+                            width: boxW,
+                            height: boxH,
                             fit: BoxFit.contain,
-                            color: Color(0xFF727475),
+                            color: const Color(0xFF727475),
                             colorBlendMode: BlendMode.srcIn,
                           ),
                         if (_micPressed)
                           Image.asset(
                             micPressed,
-                            width: micSize,
-                            height: micSize,
+                            width: imgW,
+                            height: imgH,
                             fit: BoxFit.contain,
                           )
-                        else if (Theme.of(context).brightness == Brightness.dark)
+                        else if (Theme.of(context).brightness ==
+                            Brightness.dark)
                           Image.asset(
                             'assets/BigMic_darkmode.png',
-                            width: micSize,
-                            height: micSize,
+                            width: imgW,
+                            height: imgH,
                             fit: BoxFit.contain,
                           )
                         else
                           Image.asset(
                             micDefault,
-                            width: micSize,
-                            height: micSize,
+                            width: imgW,
+                            height: imgH,
                             fit: BoxFit.contain,
                           ),
                       ],
@@ -362,132 +412,92 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               ),
             ];
           })(),
-          // Detected Mood box
+
+          // Text box (display only - no typing here)
           Positioned(
-            left: 55.5,
-            top: 499,
-            child: Container(
-              width: 300,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF727475)
-                    : Theme.of(context).colorScheme.secondaryContainer,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 27),
-                  Text(
-                    'Detected mood: ',
-                    style: TextStyle(
-                      fontFamily: 'Arial Rounded MT Bold',
-                      fontSize: 20,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFFEFEFEF)
-                          : Theme.of(context).textTheme.bodyLarge?.color,
+            left: 34,
+            top: 325,
+            child: SizedBox(
+              width: 343,
+              height: 150,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF727475)
+                      : const Color(0xFFE8F2FB),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 18.0,
+                  ),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: SingleChildScrollView(
+                      child: Text(
+                        _hasText ? _transcribedText : 'Say something...!',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 20,
+                          color: _hasText
+                              ? (Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black)
+                              : Colors.grey,
+                        ),
+                      ),
                     ),
                   ),
-                  Text(
-                    _detectedMood,
-                    style: TextStyle(
-                      fontFamily: 'Arial Rounded MT Bold',
-                      fontSize: 20,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFF9076FE)
-                          : Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-          // Text box: color #E8F2FB in light mode, original in dark mode
-          if (widget.themeMode == AppThemeMode.light)
+
+          // Detected Mood box (only show after we have text)
+          if (_hasText)
             Positioned(
-              left: 34,
-              top: 325,
-              child: SizedBox(
-                width: 343,
-                height: 150,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8F2FB),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
-                    child: TextField(
-                      controller: _textController,
-                      maxLines: null,
-                      expands: true,
-                      keyboardType: TextInputType.multiline,
-                      textAlignVertical: TextAlignVertical.top,
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w500,
-                        fontSize: 20,
-                        color: Colors.black,
-                      ),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        isCollapsed: true,
-                        hintText: 'Say something...!',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 20,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ),
-                  ),
+              left: 55.5,
+              top: 499,
+              child: Container(
+                width: 300,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF727475)
+                      : Theme.of(context).colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(15),
                 ),
-              ),
-            )
-          else
-            Positioned(
-              left: 34,
-              top: 325,
-              child: SizedBox(
-                width: 343,
-                height: 150,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF727475),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
-                    child: TextField(
-                      controller: _textController,
-                      maxLines: null,
-                      expands: true,
-                      keyboardType: TextInputType.multiline,
-                      textAlignVertical: TextAlignVertical.top,
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w500,
+                child: Row(
+                  children: [
+                    const SizedBox(width: 27),
+                    Text(
+                      'Detected mood: ',
+                      style: TextStyle(
+                        fontFamily: 'Arial Rounded MT Bold',
                         fontSize: 20,
-                        color: Colors.white,
-                      ),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        isCollapsed: true,
-                        hintText: 'Say something...!',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 20,
-                          color: Colors.white70,
-                        ),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFFEFEFEF)
+                            : Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
-                  ),
+                    Text(
+                      _detectedMood,
+                      style: TextStyle(
+                        fontFamily: 'Arial Rounded MT Bold',
+                        fontSize: 20,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF9076FE)
+                            : Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          // Edit button (image asset, changes on press)
+
+          // Edit button
           Positioned(
             left: 325,
             top: 453,
@@ -510,7 +520,6 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
               ),
             ),
           ),
-          // (Removed old logo box, replaced with styled text above)
         ],
       ),
     );

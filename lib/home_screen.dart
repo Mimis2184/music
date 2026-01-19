@@ -9,16 +9,25 @@ import 'package:music/results_screen.dart';
 import 'main.dart';
 
 // Figma assets
-const String imgHappy = 'https://www.figma.com/api/mcp/asset/4f2c0b74-d1df-4ecc-b271-fb2a00e82170';
-const String imgAnxious = 'https://www.figma.com/api/mcp/asset/5a470cc2-779d-4b9b-93df-a2700a94f003';
-const String imgRomantic = 'https://www.figma.com/api/mcp/asset/290203f6-4f59-4dfe-a146-eb312738531d';
-const String imgLogo = 'https://www.figma.com/api/mcp/asset/ff332b3e-8869-46dd-8350-bc5faa2df7a9';
-const String imgSad = 'https://www.figma.com/api/mcp/asset/08a83d0e-dffe-41aa-8a23-94ceae79f049';
-const String imgAngry = 'https://www.figma.com/api/mcp/asset/fb68694e-cc40-40d9-813b-37556e259cee';
-const String imgCalm = 'https://www.figma.com/api/mcp/asset/a10cae1e-9734-48f4-b60e-1628fa79be05';
+const String imgHappy =
+    'https://www.figma.com/api/mcp/asset/4f2c0b74-d1df-4ecc-b271-fb2a00e82170';
+const String imgAnxious =
+    'https://www.figma.com/api/mcp/asset/5a470cc2-779d-4b9b-93df-a2700a94f003';
+const String imgRomantic =
+    'https://www.figma.com/api/mcp/asset/290203f6-4f59-4dfe-a146-eb312738531d';
+const String imgLogo =
+    'https://www.figma.com/api/mcp/asset/ff332b3e-8869-46dd-8350-bc5faa2df7a9';
+const String imgSad =
+    'https://www.figma.com/api/mcp/asset/08a83d0e-dffe-41aa-8a23-94ceae79f049';
+const String imgAngry =
+    'https://www.figma.com/api/mcp/asset/fb68694e-cc40-40d9-813b-37556e259cee';
+const String imgCalm =
+    'https://www.figma.com/api/mcp/asset/a10cae1e-9734-48f4-b60e-1628fa79be05';
+
 // Small camera button assets (local)
 const String smallCameraNormal = 'assets/SmallCamera_regurlar_right.png';
 const String smallCameraPressed = 'assets/SmallCamera_pressed_rigth.png';
+
 // Small mic button assets (local)
 const String smallMicNormal = 'assets/1.png';
 const String smallMicPressed = 'assets/Variant3.png';
@@ -26,22 +35,23 @@ const String smallMicDark = 'assets/smallmic_dark.png';
 const String smallMicPressedDark = 'assets/smallmicpresseddark.png';
 const String smallCameraDark = 'assets/smallcamera_dark.png';
 const String smallCameraPressedDark = 'assets/smallcamerapresseddark.png';
+
 // See Suggestions button assets (local)
 const String seeSuggestionsNormal = 'assets/Property 1=Default.png';
 const String seeSuggestionsPressed = 'assets/Property 1=Variant2.png';
 
-
 class HomeScreen extends StatefulWidget {
   final Map<String, String> themeAssets;
   final AppThemeMode themeMode;
-  const HomeScreen({super.key, required this.themeAssets, required this.themeMode});
+  const HomeScreen(
+      {super.key, required this.themeAssets, required this.themeMode});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-    bool isSharePressed = false;
+  bool isSharePressed = false;
   String? selectedMood;
   bool isSeeSuggestionsPressed = false;
   bool isCameraPressed = false;
@@ -119,6 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Image.network(imgLogo, fit: BoxFit.cover),
             ),
           ),
+
           // Large 'moosik'
           Positioned(
             left: 189,
@@ -140,25 +151,27 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          // Main message
+
+          // Main message (aligned under logo + title, not centered across the whole screen)
           Positioned(
-            left: 48.5,
+            left: 26,
             top: 185,
-            child: SizedBox(
-              width: 314,
-              height: 28,
-              child: Text(
-                'How are you feeling today?',
-                style: TextStyle(
-                  fontFamily: 'Arial Rounded MT Bold',
-                  fontWeight: FontWeight.w400,
-                  fontSize: 24,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                ),
-                textAlign: TextAlign.center,
+            width: 350,
+            child: Text(
+              'How are you feeling today?',
+              style: TextStyle(
+                fontFamily: 'Arial Rounded MT Bold',
+                fontWeight: FontWeight.w400,
+                fontSize: 24,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              softWrap: true,
+              overflow: TextOverflow.visible,
             ),
           ),
+
           // Mood buttons row 1
           Positioned(
             left: 34.5,
@@ -173,6 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+
           // Mood buttons row 2
           Positioned(
             left: 34.5,
@@ -187,6 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+
           // Small mic
           Positioned(
             left: 115,
@@ -205,13 +220,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 56,
                     child: Stack(
                       children: [
-                        // Background circle for dark mode
                         if (Theme.of(context).brightness == Brightness.dark)
                           Container(
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: Color(0xFF312F2D),
+                              color: const Color(0xFF312F2D),
                               borderRadius: BorderRadius.circular(28),
                             ),
                           ),
@@ -220,13 +234,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Center(
                             child: Image.asset(
                               Theme.of(context).brightness == Brightness.dark
-                                  ? (isMicPressed ? smallMicPressedDark : smallMicDark)
-                                  : (isMicPressed ? smallMicPressed : smallMicNormal),
+                                  ? (isMicPressed
+                                      ? smallMicPressedDark
+                                      : smallMicDark)
+                                  : (isMicPressed
+                                      ? smallMicPressed
+                                      : smallMicNormal),
                               width: 56,
                               height: 56,
                               fit: BoxFit.contain,
-                              color: Theme.of(context).brightness == Brightness.dark ? null : null,
-                              colorBlendMode: Theme.of(context).brightness == Brightness.dark ? null : null,
                             ),
                           ),
                         ),
@@ -249,6 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+
           // Small camera
           Positioned(
             left: 240,
@@ -267,13 +284,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 56,
                     child: Stack(
                       children: [
-                        // Background circle for dark mode
                         if (Theme.of(context).brightness == Brightness.dark)
                           Container(
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(
-                              color: Color(0xFF312F2D),
+                              color: const Color(0xFF312F2D),
                               borderRadius: BorderRadius.circular(28),
                             ),
                           ),
@@ -281,13 +297,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(28),
                           child: Image.asset(
                             Theme.of(context).brightness == Brightness.dark
-                                ? (isCameraPressed ? smallCameraPressedDark : smallCameraDark)
-                                : (isCameraPressed ? smallCameraPressed : smallCameraNormal),
+                                ? (isCameraPressed
+                                    ? smallCameraPressedDark
+                                    : smallCameraDark)
+                                : (isCameraPressed
+                                    ? smallCameraPressed
+                                    : smallCameraNormal),
                             width: 56,
                             height: 56,
                             fit: BoxFit.cover,
-                            color: Theme.of(context).brightness == Brightness.dark ? null : null,
-                            colorBlendMode: Theme.of(context).brightness == Brightness.dark ? null : null,
                           ),
                         ),
                       ],
@@ -309,6 +327,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+
           // See Suggestions button
           Positioned(
             left: 61,
@@ -316,7 +335,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: GestureDetector(
               onTapDown: (_) => setState(() => isSeeSuggestionsPressed = true),
               onTapUp: (_) => _handleSeeSuggestions(),
-              onTapCancel: () => setState(() => isSeeSuggestionsPressed = false),
+              onTapCancel: () =>
+                  setState(() => isSeeSuggestionsPressed = false),
               child: SizedBox(
                 width: 289,
                 height: 58,
@@ -325,12 +345,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(29),
                       child: Image.asset(
-                        isSeeSuggestionsPressed ? seeSuggestionsPressed : seeSuggestionsNormal,
+                        isSeeSuggestionsPressed
+                            ? seeSuggestionsPressed
+                            : seeSuggestionsNormal,
                         width: 289,
                         height: 58,
                         fit: BoxFit.cover,
-                        color: Theme.of(context).brightness == Brightness.dark ? Color(0xFF2D547A) : null,
-                        colorBlendMode: Theme.of(context).brightness == Brightness.dark ? BlendMode.srcATop : null,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF2D547A)
+                            : null,
+                        colorBlendMode:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? BlendMode.srcATop
+                                : null,
                       ),
                     ),
                     if (Theme.of(context).brightness == Brightness.dark)
@@ -342,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontFamily: 'Arial Rounded MT Bold',
                               fontWeight: FontWeight.w600,
                               fontSize: 20,
-                              color: Color(0xFF312F2D),
+                              color: const Color(0xFF312F2D),
                             ),
                           ),
                         ),
@@ -380,7 +407,6 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: 56,
               height: 56,
-              // Ensure emoji is rendered with original color, no tint
               child: Image.network(imgUrl, fit: BoxFit.contain),
             ),
             const SizedBox(height: 8),
@@ -400,6 +426,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  // ...existing code...
 }

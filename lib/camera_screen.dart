@@ -113,18 +113,6 @@ class _CameraScreenState extends State<CameraScreen> {
         return;
       }
 
-      // Αν έχεις ήδη φωτο, στο tap να κάνει retake (επιστροφή στο live preview)
-      if (_photoBytes != null) {
-        setState(() {
-          _photoBytes = null;
-          _capturedPath = null;
-          detectedMood = null;
-          _faceFound = false;
-          isAnalyzing = false;
-        });
-        return;
-      }
-
       final XFile file = await controller.takePicture();
       final bytes = await file.readAsBytes();
 
@@ -148,8 +136,7 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> _analyzeCapturedPhoto() async {
-    // Web: ML Kit face detection (όπως το έχεις) δεν δουλεύει σωστά με fromFilePath.
-    // Κράτα fallback.
+
     if (kIsWeb) {
       if (!mounted) return;
       setState(() {
@@ -175,7 +162,7 @@ class _CameraScreenState extends State<CameraScreen> {
     if (faces.isEmpty) {
       setState(() {
         _faceFound = false;
-        detectedMood = 'Anxious'; // fallback για να συνεχίζει το flow
+        detectedMood = 'Anxious'; // fallback οΏ½οΏ½οΏ½ οΏ½οΏ½ οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½ οΏ½οΏ½ flow
         isAnalyzing = false;
       });
       return;
@@ -260,16 +247,24 @@ class _CameraScreenState extends State<CameraScreen> {
             child: SizedBox(
               width: 343,
               height: 26,
-              child: Text(
-                'Analyzing your expression...',
-                style: TextStyle(
-                  fontFamily: 'Arial Rounded MT Bold',
-                  fontWeight: FontWeight.w400,
-                  fontSize: 24,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Analyzing your expression...',
+                    style: TextStyle(
+                      fontFamily: 'Arial Rounded MT Bold',
+                      fontWeight: FontWeight.w400,
+                      fontSize: 24,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.visible,
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             ),
           ),
@@ -279,7 +274,7 @@ class _CameraScreenState extends State<CameraScreen> {
             left: 61,
             top: 151,
             child: GestureDetector(
-              onTap: _takePhoto,
+              onTap: _photoBytes == null ? _takePhoto : null,
               child: Container(
                 width: 289,
                 height: 310,
@@ -325,31 +320,6 @@ class _CameraScreenState extends State<CameraScreen> {
                                   ),
                                 ),
                               ),
-                            Align(
-                              alignment: Alignment.bottomCenter,
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.35),
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: const Text(
-                                    'Tap to retake',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      fontFamily: 'Arial Rounded MT Bold',
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
                           ],
                         )
                       : (_isCameraReady && _cameraController != null)
@@ -397,7 +367,7 @@ class _CameraScreenState extends State<CameraScreen> {
                                   ),
                                   const SizedBox(height: 14),
                                   Text(
-                                    'Opening camera…',
+                                    'Opening camera...',
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: Theme.of(context)

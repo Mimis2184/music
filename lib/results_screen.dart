@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:nfc_manager/nfc_manager.dart';
+//import 'package:nfc_manager/nfc_manager.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'main.dart';
@@ -36,37 +36,53 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
   /* ================= NFC SHARE ================= */
 
-  Future<void> _shareViaNfc() async {
-    final available = await NfcManager.instance.isAvailable();
-    if (!available) {
-      _showSnack('NFC not available on this device');
-      return;
-    }
+  // NOTE:
+  // Εδώ κρατάμε το "παλιό" NFC writing implementation ως σχόλια.
+  // Το αφαιρέσαμε από dependencies γιατί έσπαγε το release build (Kotlin compile issue).
+  // Αν το ξαναβάλετε στο μέλλον, κάνετε uncomment import + function + κουμπί.
+  //
+  //Future<void> _shareViaNfc() async {
+  //  final available = await NfcManager.instance.isAvailable();
+  //  if (!available) {
+  //    _showSnack('NFC not available on this device');
+  //    return;
+  //  }
+  //
+  //  _showSnack('Touch another phone to share playlist');
+  //
+  //  final uri = Uri.parse('https://moosik.app/playlist?mood=${widget.mood}');
+  //
+  //  NfcManager.instance.startSession(
+  //    onDiscovered: (tag) async {
+  //      try {
+  //        final ndef = Ndef.from(tag);
+  //        if (ndef == null || !ndef.isWritable) {
+  //          _showSnack('NFC tag not writable');
+  //          return;
+  //        }
+  //
+  //        final message = NdefMessage([NdefRecord.createUri(uri)]);
+  //
+  //        await ndef.write(message);
+  //        _showSnack('Playlist shared via NFC!');
+  //      } catch (_) {
+  //        _showSnack('NFC write failed');
+  //      } finally {
+  //        NfcManager.instance.stopSession();
+  //      }
+  //    },
+  //  );
+  //}
 
-    _showSnack('Touch another phone to share playlist');
+  // “Σύγχρονη” υλοποίηση Axis 3 (χωρίς NFC plugin):
+  // Μοιραζόμαστε deep-link URL. Αν η εφαρμογή είναι εγκατεστημένη ανοίγει ResultsScreen,
+  // αλλιώς (θεωρητικά) θα οδηγούσε σε Play Store / website.
+  void _handleTapToOpenShare() {
+    final link = Uri.parse(
+      'https://moosik.app/playlist?mood=${Uri.encodeComponent(widget.mood)}',
+    ).toString();
 
-    final uri = Uri.parse('https://moosik.app/playlist?mood=${widget.mood}');
-
-    NfcManager.instance.startSession(
-      onDiscovered: (tag) async {
-        try {
-          final ndef = Ndef.from(tag);
-          if (ndef == null || !ndef.isWritable) {
-            _showSnack('NFC tag not writable');
-            return;
-          }
-
-          final message = NdefMessage([NdefRecord.createUri(uri)]);
-
-          await ndef.write(message);
-          _showSnack('Playlist shared via NFC!');
-        } catch (_) {
-          _showSnack('NFC write failed');
-        } finally {
-          NfcManager.instance.stopSession();
-        }
-      },
-    );
+    Share.share(link, subject: 'Moosik Tap-to-open');
   }
 
   void _showSnack(String text) {
@@ -157,16 +173,22 @@ class _ResultsScreenState extends State<ResultsScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-          // 🔹 NFC button (TOP LEFT)
+          // 🔹 "Tap-to-open" button (TOP RIGHT, δίπλα στο Share)
+          // Στο UI το δείχνουμε ως NFC-icon, αλλά λειτουργικά κάνει share deep link.
           Positioned(
-            left: 20,
+            left: 320, // δίπλα στο share (share είναι 356)
             top: 33,
             width: 29,
             height: 29,
             child: IconButton(
               padding: EdgeInsets.zero,
-              icon: const Icon(Icons.nfc),
-              onPressed: _shareViaNfc,
+              icon: Icon(
+                Icons.nfc,
+                size: 24,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
+              onPressed: _handleTapToOpenShare,
+              tooltip: 'Tap-to-open share',
             ),
           ),
 

@@ -16,7 +16,7 @@ dependencies:
   provider: ^6.1.2
 
   # NFC + Deep Links (Axis 3)
-  nfc_manager: ^3.5.0
+  #nfc_manager: ^3.5.0
   app_links: ^6.4.0
 
   # Your existing deps

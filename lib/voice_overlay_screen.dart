@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'results_screen.dart';
 import 'voice_overlay_edit_screen.dart';
-import 'main.dart';
+import 'main.dart'; // ✅ needed for AppThemeMode
 import 'app_state.dart';
 
 class VoiceOverlayScreen extends StatefulWidget {
@@ -63,7 +63,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
           if (mounted) setState(() => _isListening = false);
         }
       },
-      onError: (error) {
+      onError: (_) {
         if (mounted) setState(() => _isListening = false);
       },
     );
@@ -78,14 +78,13 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
     }
     if (!_speechAvailable) return;
 
-    // Start fresh while pressed
     setState(() {
       _isListening = true;
       _transcribedText = '';
       _detectedMood = '';
     });
 
-    // ✅ persist reset (correct call: named params)
+    // ✅ persist reset
     await context.read<AppState>().setVoiceResult(text: '', mood: '');
 
     _speech.listen(
@@ -102,8 +101,7 @@ class _VoiceOverlayScreenState extends State<VoiceOverlayScreen> {
           _detectedMood = mood;
         });
 
-        // ✅ persist update (named params)
-        // (δεν χρειάζεται await εδώ)
+        // ✅ persist update (χωρίς await για να μην lag-άρει)
         context.read<AppState>().setVoiceResult(text: text, mood: mood);
       },
     );

@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AppState extends ChangeNotifier {
   bool initialized = false;
 
+  // Mood from Home / NFC / Deep link
   String? lastMood;
 
   // Voice memory
@@ -36,6 +37,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Persist voice recognition result
   Future<void> setVoiceResult({
     required String text,
     required String mood,

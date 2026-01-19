@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:app_links/app_links.dart';
 
 import 'home_screen.dart';
 import 'results_screen.dart';
@@ -132,23 +133,109 @@ class _MyAppState extends State<MyApp> {
     ),
   );
 
+  // Deep link handling (for NFC -> tap-to-open)
+  final _navigatorKey = GlobalKey<NavigatorState>();
+  final AppLinks _appLinks = AppLinks();
+  String? _pendingMoodFromLink;
+
+  static const Set<String> _allowedMoods = {
+    'Happy',
+    'Sad',
+    'Calm',
+    'Anxious',
+    'Romantic',
+    'Angry',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
+  }
+
+  Future<void> _initDeepLinks() async {
+    // Initial link (cold start)
+    try {
+      final uri = await _appLinks.getInitialLink();
+      if (uri != null) _handleIncomingUri(uri);
+    } catch (_) {}
+
+    // Stream (while app is running)
+    _appLinks.uriLinkStream.listen((uri) {
+      _handleIncomingUri(uri);
+    });
+  }
+
+  void _handleIncomingUri(Uri uri) {
+    // Expect something like:
+    // moosik://playlist?mood=Happy
+    // OR https://moosik.app/playlist?mood=Happy
+    final mood = uri.queryParameters['mood'];
+    if (mood == null || !_allowedMoods.contains(mood)) return;
+
+    // If navigator/context not ready yet, store and apply after build.
+    if (_navigatorKey.currentContext == null) {
+      _pendingMoodFromLink = mood;
+      return;
+    }
+
+    _openPlaylistForMood(mood);
+  }
+
+  Future<void> _openPlaylistForMood(String mood) async {
+    final navContext = _navigatorKey.currentContext;
+    if (navContext == null) {
+      _pendingMoodFromLink = mood;
+      return;
+    }
+
+    // Persist mood in AppState
+    await navContext.read<AppState>().setMood(mood);
+
+    if (!mounted) return;
+
+    final isDark = Theme.of(navContext).brightness == Brightness.dark;
+    final assets = isDark ? darkModeAssets : lightModeAssets;
+    final themeMode = isDark ? AppThemeMode.dark : AppThemeMode.light;
+
+    _navigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => ResultsScreen(
+          mood: mood,
+          themeAssets: assets,
+          themeMode: themeMode,
+        ),
+      ),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
 
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Moosik App',
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
-
       home: Builder(
         builder: (context) {
           if (!appState.initialized) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
+          }
+
+          // Apply any pending deep link once everything is ready
+          if (_pendingMoodFromLink != null) {
+            final mood = _pendingMoodFromLink!;
+            _pendingMoodFromLink = null;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _openPlaylistForMood(mood);
+            });
           }
 
           final isDark = Theme.of(context).brightness == Brightness.dark;

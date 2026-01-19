@@ -15,6 +15,10 @@ dependencies:
   shared_preferences: ^2.2.2
   provider: ^6.1.2
 
+  # NFC + Deep Links (Axis 3)
+  nfc_manager: ^3.5.0
+  app_links: ^6.4.0
+
   # Your existing deps
   url_launcher: ^6.2.5
   webview_flutter: ^4.7.0

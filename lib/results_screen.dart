@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:nfc_manager/nfc_manager.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'main.dart';
 import 'home_screen.dart';
 import 'app_state.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 // Open in Spotify button assets (background only, no text)
 const String openSpotifyBgDefault = 'assets/spotifydefault.png';
@@ -32,6 +33,48 @@ class _ResultsScreenState extends State<ResultsScreen> {
   static const String sharePressed = 'assets/sharebutton_pressed.png';
 
   bool _isTryMoodPressed = false;
+
+  /* ================= NFC SHARE ================= */
+
+  Future<void> _shareViaNfc() async {
+    final available = await NfcManager.instance.isAvailable();
+    if (!available) {
+      _showSnack('NFC not available on this device');
+      return;
+    }
+
+    _showSnack('Touch another phone to share playlist');
+
+    final uri = Uri.parse('https://moosik.app/playlist?mood=${widget.mood}');
+
+    NfcManager.instance.startSession(
+      onDiscovered: (tag) async {
+        try {
+          final ndef = Ndef.from(tag);
+          if (ndef == null || !ndef.isWritable) {
+            _showSnack('NFC tag not writable');
+            return;
+          }
+
+          final message = NdefMessage([NdefRecord.createUri(uri)]);
+
+          await ndef.write(message);
+          _showSnack('Playlist shared via NFC!');
+        } catch (_) {
+          _showSnack('NFC write failed');
+        } finally {
+          NfcManager.instance.stopSession();
+        }
+      },
+    );
+  }
+
+  void _showSnack(String text) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  /* ================= SPOTIFY ================= */
 
   void _handleOpenInSpotify() async {
     String url = '';
@@ -66,7 +109,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Future<void> _handleTryAnotherMood(BuildContext context) async {
-    // ✅ Persist + shared state through AppState (Provider)
     await context.read<AppState>().setMood(null);
 
     if (!mounted) return;
@@ -115,6 +157,19 @@ class _ResultsScreenState extends State<ResultsScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
+          // 🔹 NFC button (TOP LEFT)
+          Positioned(
+            left: 20,
+            top: 33,
+            width: 29,
+            height: 29,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.nfc),
+              onPressed: _shareViaNfc,
+            ),
+          ),
+
           // Share button
           Positioned(
             left: 356,
@@ -123,6 +178,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
             height: 29,
             child: _ShareButton(onPressed: _handleShare),
           ),
+
+          // --------- ΟΛΑ ΤΑ ΥΠΟΛΟΙΠΑ ΜΕΝΟΥΝ ΑΚΡΙΒΩΣ ΙΔΙΑ ---------
 
           // Try another mood button
           Positioned(
